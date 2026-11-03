@@ -2,67 +2,39 @@
 
 配套文章：https://lucas-ttt.github.io/posts/
 
-这组示例使用自编的产品排障资料和退款记录，覆盖工具、校验、状态、执行闭环与MCP。文章中的Python代码与对应下载文件保持一致，每个非空代码行有中文注释。
+当前十篇围绕同一个知识库原型，记录场景、选型、排错、切片、混合检索、执行编排、工具可靠性、评测、性能成本和重构。所有当前入口只用Python 3.12标准库，不需要模型密钥或网络。
 
-## 从哪里开始
-
-| 文章顺序 | 入口文件 | 实际观察 |
+| 顺序 | 实践主题 | 入口文件 |
 | --- | --- | --- |
-| 01 | knowledge_tool.py | v2命中csv-v2，v1命中csv-v1，v9为空 |
-| 02 | chunk_context.py | 字符边界、元数据与字段被截断的例子 |
-| 03 | retrieval_demo.py | 有无版本约束的结果对照 |
-| 04 | citation_checks.py | 来源ID、适用版本与语义支持的区别 |
-| 05 | eval_tools.py | 8条固定工具回归用例 |
-| 06 | sql_readonly.py | 350元、修正SQL重新校验、写入拒绝 |
-| 07 | session_memory.py | SQLite会话隔离与历史字符预算 |
-| 08 | langgraph_agent.py | 真实状态图、固定决策回放与6步停止 |
-| 09 | retry_fallback.py | 四种故障注入与有限重试 |
-| 10 | mcp_client.py | 启动mcp_server.py，发现工具并实际调用 |
+| 01 | 从排障资料到可回查答案：我的知识库原型实践 | project_walkthrough.py |
+| 02 | 我为什么给知识库选择 RAG，也保留长上下文和业务接口 | route_policy.py |
+| 03 | 原文有答案却没有命中：我怎样沿检索链路定位问题 | retrieval_trace.py |
+| 04 | 我如何拆分手册：保住表头、长段落和跨段条件 | structured_chunking.py |
+| 05 | 从精确匹配到候选精排：我的混合检索实验 | hybrid_rerank.py |
+| 06 | 先固定流程，再开放决策：我对 Workflow 和 Agent 的取舍 | workflow_agent.py |
+| 07 | 把工具失败拆开处理：参数校验、有限重试与幂等 | tool_safety.py |
+| 08 | 我给知识库建立了一份可复查的评测记录 | rag_evaluation.py |
+| 09 | 先拆开耗时，再决定缓存和预算：我的性能成本实验 | latency_cost.py |
+| 10 | 如果重做知识库，我会先统一请求、证据与执行契约 | redesign_contracts.py |
 
-补充实验：`chunk_parameter_demo.py` 对比 18／24／36 的切片预算；`rank_fusion_demo.py` 融合两份手工排名。它们对应第02、03篇的独立代码块，不依赖真实向量模型或网络。
+## 运行
 
-## 环境
-
-本次验证：Python 3.12.14，mcp 1.30.0、langgraph 1.2.19、langchain-core 1.7.4。第01—07、09篇只需Python标准库。08和10需要第三方依赖。
-
-Windows PowerShell，在本目录执行：
+在本目录使用Python 3.12运行入口，例如：
 
 ```powershell
-python -m venv .venv # 用已安装的Python 3.12建立独立环境。
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt # 安装固定的示例依赖。
-.\.venv\Scripts\python.exe langgraph_agent.py # 默认回放决策，真实执行检索工具。
-.\.venv\Scripts\python.exe mcp_client.py # 运行真正的本地MCP双端调用。
+python project_walkthrough.py # 实际读取临时演示资料、建立词项索引并输出适用原文。
+python rag_evaluation.py # 读取同一原型的候选并记录人工预期的命中与失败。
+python latency_cost.py # 观察真实本机计时；模拟等待与用量不能代表线上性能。
 ```
 
-WSL或Linux，在本目录执行：
+第03、08、09篇导入project_walkthrough.py，请保持文件在同一目录；第06、07篇复用knowledge_tool.py，同样需要保留该文件。
 
-```bash
-python3 -m venv .venv # 使用Python 3.12创建独立环境。
-.venv/bin/python -m pip install -r requirements.txt # 安装固定的示例依赖。
-.venv/bin/python langgraph_agent.py # 运行默认离线决策回放。
-.venv/bin/python mcp_client.py # 运行本地MCP协议连接与工具调用。
-```
+## 验证范围
 
-## 三个边界实验
+verification.json与verified-output.txt保留实际命令和输出。当前十个入口已运行；语义特征、规则重排、固定策略和模拟模型等待均属于可观察的实验替身，不等于真实Embedding、交叉编码器或模型服务效果。计时会随设备与负载变化，演示单价不代表服务商实际报价。
 
-在已激活Python虚拟环境的终端执行：
+## 早期补充实验
 
-```powershell
-python langgraph_agent.py --repeat # 观察重复工具请求如何在图预算到达后结束。
-python mcp_client.py --version v9 # 请求结构合法，但没有对应版本资料。
-python mcp_client.py --bad-input # 注入空问题，观察工具错误返回。
-```
+目录同时保留早期的knowledge_tool.py、chunk_context.py、retrieval_demo.py、citation_checks.py、eval_tools.py、sql_readonly.py、session_memory.py、langgraph_agent.py、model_client.py、retry_fallback.py、mcp_server.py、mcp_client.py、chunk_parameter_demo.py和rank_fusion_demo.py。它们的原验证记录仍可查；运行LangGraph和MCP补充实验时，先在独立环境安装requirements.txt锁定的依赖。外部模型--live适配器未用真实API Key验证，密钥仅从进程环境读取。
 
-MCP的服务端stdout用于协议通信，SDK处理日志可出现在stderr；不要将任意print输出放到服务端协议流里。
-
-## 可选真实模型
-
-langgraph_agent.py默认没有外部模型请求；工具确实执行，决策和最终拼接使用固定回放。显式使用--live时，model_client.py从环境读取AGENT_CHAT_URL、AGENT_MODEL、AGENT_API_KEY，再请求兼容该工具消息结构的服务。密钥不能写进文件或公开文章。
-
-真实服务的模型ID、完整接口URL和工具能力应按服务商文档确认。此部分本次未用真实API Key验证；图循环、查询、回归、故障注入和本地MCP调用已执行，见verification.json及verified-output.txt。回放结果不代表真实模型回答质量，8条工具用例也不代表LLM准确率。
-
-## 来源与代码范围
-
-文章保留牛客、博客园中文作者的阅读入口，并用官方SDK或语言文档核对API。这里的业务数据与示例程序为本系列组织的可运行演练，没有收录未授权博客全文，也不将其他作者的项目成果列为个人经历。
-
-示例按MIT许可证提供，见LICENSE。LangGraph和MCP属于独立的第三方项目，安装它们时适用各自许可证；本包不内置这些第三方依赖。
+MIT许可见LICENSE。文章与下载的完整代码保持一致；更新代码时应同时更新说明与运行记录。

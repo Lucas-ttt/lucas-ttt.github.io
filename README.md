@@ -20,6 +20,8 @@
 
 工程笔记目前为10篇“AI Agent 开发实践”，以个人实验与技术分享组织内容，每篇包含实现过程、完整Python代码、逐段分析、实际输出与工程取舍。文章不展示外部引用来源地址或参考清单；保留站内代码下载与运行说明。文章页按seriesOrder展示，首页精选由featured控制；原始日期仍用于订阅和结构化元信息。
 
+当前十篇依次记录项目原型、技术选型、检索排错、结构化切片、混合检索与精排、工作流边界、工具可靠性、评测、性能成本和重构。文章与入口脚本的映射在public/examples/agent-lab/article-map.json；早期文章链接通过src/pages/posts/[legacy].astro跳转到相应主题。
+
 下载包在public/examples/agent-lab.zip，源文件及运行记录在public/examples/agent-lab/。修改脚本时需要同步文章代码块，并实际重跑后更新verification.json和verified-output.txt；不能只改显示输出。标准库示例、LangGraph和MCP已执行验证，真实外部模型--live模式需使用自己的服务配置另行验证。
 
 archiveDatetime 是自定义归档日期，用于文章列表及归档页编排。pubDatetime 和 modDatetime 保留实际发布/整理与更新记录，供正文、订阅和结构化信息使用。自定义日期不代表文章当时已经发表。

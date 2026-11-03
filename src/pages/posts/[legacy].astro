@@ -1,0 +1,19 @@
+---
+export function getStaticPaths() {
+  const redirects = {
+    "traceable-document-chunks": "knowledge-base-project",
+    "chunking-with-context": "structure-aware-chunking",
+    "keyword-and-vector-retrieval": "hybrid-search-reranking",
+    "citations-and-answer-quality": "rag-evaluation-records",
+    "small-rag-evaluation": "rag-evaluation-records",
+    "attribution-analysis-design": "reliable-tool-execution",
+    "context-budget-and-memory": "knowledge-base-redesign",
+    "tool-calling-execution-boundaries": "workflow-and-agent-boundaries",
+    "timeouts-retries-and-fallbacks": "reliable-tool-execution",
+    "skills-mcp-and-runtime-controls": "workflow-and-agent-boundaries"
+};
+  return Object.entries(redirects).map(([legacy, slug]) => ({ params: { legacy }, props: { destination: `/posts/${slug}/` } }));
+}
+const { destination } = Astro.props;
+return Astro.redirect(destination, 301);
+---

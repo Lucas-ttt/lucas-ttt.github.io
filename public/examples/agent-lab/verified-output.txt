@@ -1,3 +1,91 @@
+$ python project_walkthrough.py
+索引证据 ['csv-v1', 'csv-v2', 'encoding-v2']
+{"query": "E102", "version": "v2", "status": "ok", "ids": ["csv-v2"], "answer": "CSV 导入缺少 customer_id 列，检查首行表头。 [来源 csv-v2]"}
+{"query": "E102", "version": "v1", "status": "ok", "ids": ["csv-v1"], "answer": "CSV 导入缺少 user_id 列，检查首行表头。 [来源 csv-v1]"}
+{"query": "E102", "version": "v9", "status": "insufficient_evidence", "ids": [], "answer": "当前资料未找到适用依据。"}
+
+$ python route_policy.py
+{"task": "固定单页手册", "routes": ["long_context"], "reasons": ["固定短资料已确认可装入剩余上下文"]}
+{"task": "多版本排障库", "routes": ["rag"], "reasons": ["需要更新、版本筛选或按需提供证据"]}
+{"task": "当前退款状态", "routes": ["business_api"], "reasons": ["实时记录先查受授权的业务接口"]}
+{"task": "固定分类格式", "routes": ["fine_tune_candidate"], "reasons": ["先验证提示与示例，再评估行为适配训练"]}
+{"task": "退款状态加流程说明", "routes": ["business_api", "rag"], "reasons": ["实时记录先查受授权的业务接口", "需要更新、版本筛选或按需提供证据"]}
+
+$ python retrieval_trace.py
+{"fault": "none", "source_has_field": true, "indexed": true, "version_ids": ["csv-v2", "encoding-v2"], "hit_ids": ["csv-v2"], "context_ids": ["csv-v2"], "first_failed_stage": null}
+{"fault": "index_missing", "source_has_field": true, "indexed": false, "version_ids": ["encoding-v2"], "hit_ids": [], "context_ids": [], "first_failed_stage": "index_membership"}
+{"fault": "wrong_version", "source_has_field": true, "indexed": true, "version_ids": ["encoding-v2"], "hit_ids": [], "context_ids": [], "first_failed_stage": "metadata_filter"}
+{"fault": "parsed_field_lost", "source_has_field": true, "indexed": true, "version_ids": ["csv-v2", "encoding-v2"], "hit_ids": [], "context_ids": [], "first_failed_stage": "normalized_text"}
+{"fault": "context_dropped", "source_has_field": true, "indexed": true, "version_ids": ["csv-v2", "encoding-v2"], "hit_ids": ["csv-v2"], "context_ids": [], "first_failed_stage": "context_assembly"}
+
+$ python structured_chunking.py
+固定步长24字段完整 False
+同预算保护字段完整 True
+片段类型 ['paragraph', 'paragraph', 'table_row', 'table_row', 'paragraph', 'paragraph']
+表格行保留表头 True
+字段完整 True
+条件覆盖 True
+正文长度 [80, 28, 71, 65, 22, 21]
+跨段补充 ['manual-v2:4', 'manual-v2:5']
+上下文字符 117
+小预算错误 单个标识超过预算，需要调整策略
+
+$ python hybrid_rerank.py
+词项候选 ['csv-v2', 'overview-v2']
+特征候选 ['csv-v2']
+融合候选 ['csv-v2', 'overview-v2']
+重排结果 ['csv-v2', 'overview-v2']
+处理数量 {'词项候选': 2, '特征候选': 1, '重排候选': 2}
+噪声排前对照 ['csv-v2', 'overview-v2']
+漏召回后重排 ['overview-v2']
+改写词项候选 []
+改写特征候选 ['csv-v2']
+
+$ python workflow_agent.py
+固定查询 {'status': 'ok', 'message': 'CSV 导入缺少 customer_id 列，检查首行表头。', 'calls': 1}
+缺版本 {'status': 'needs_input', 'message': '请补充产品版本', 'calls': 0}
+有界调度 {'status': 'ok', 'calls': 1, 'steps': 2, 'history': [{'step': 1, 'tool': 'lookup_support', 'ids': ['csv-v2']}]}
+重复调用 {'status': 'call_limit', 'calls': 2, 'steps': 3, 'history': [{'step': 1, 'tool': 'lookup_support', 'ids': ['csv-v2']}, {'step': 2, 'tool': 'lookup_support', 'ids': ['csv-v2']}]}
+未注册工具 {'status': 'unknown_tool', 'calls': 0, 'steps': 1, 'history': []}
+计划未完成 {'status': 'incomplete', 'calls': 1, 'steps': 1, 'history': [{'step': 1, 'tool': 'lookup_support', 'ids': ['csv-v2']}]}
+
+$ python tool_safety.py
+参数错误 参数必须为非空字符串
+只读恢复 {"status": "ok", "attempts": 2, "ids": ["csv-v2"]}
+工单结果 {"status": "created", "ticket_id": "TK-6dfd819d"}
+工单结果 {"status": "reused", "ticket_id": "TK-6dfd819d"}
+重复冲突 同一业务操作标识对应不同参数
+回复丢失后核对 已找到工单
+实际工单数 2
+
+$ python rag_evaluation.py
+top_k=1 dev {"passed": "2/3", "recall_macro": 0.833, "precision_macro": 1.0, "empty_correct": "0/0", "wrong_version": 0}
+失败样例 d3 ['encoding-v2']
+top_k=1 holdout {"passed": "5/7", "recall_macro": 0.625, "precision_macro": 0.75, "empty_correct": "3/3", "wrong_version": 0}
+失败样例 h2 []
+失败样例 h5 ['csv-v2']
+top_k=2 dev {"passed": "3/3", "recall_macro": 1.0, "precision_macro": 1.0, "empty_correct": "0/0", "wrong_version": 0}
+top_k=2 holdout {"passed": "6/7", "recall_macro": 0.75, "precision_macro": 0.75, "empty_correct": "3/3", "wrong_version": 0}
+失败样例 h2 []
+计时说明 elapsed_ms逐条记录检索调用，不包含索引和模型；重复运行会变化
+
+$ python latency_cost.py
+baseline {"cache_hit": false, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 15.987, "retrieve": 16.359, "rerank": 15.245, "generate": 16.114}, "total_ms": 63.73}
+cached {"cache_hit": true, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 15.485, "retrieve": 0.002, "rerank": 0.0, "generate": 15.572}, "total_ms": 31.075}
+reduced {"cache_hit": true, "ids": ["csv-v2"], "status": "ok", "quality_ok": false, "usage": {"input_tokens": 240, "output_tokens": 40}, "estimated_yuan": 0.0008, "stage_ms": {"parse": 15.902, "retrieve": 0.002, "rerank": 0.0, "generate": 15.448}, "total_ms": 31.365}
+版本变化 cache_hit False
+范围变化 cache_hit False
+修订变化 cache_hit False
+库外问题 {"status": "insufficient_evidence", "ids": [], "usage": {"input_tokens": 0, "output_tokens": 0}, "estimated_yuan": 0.0}
+
+$ python redesign_contracts.py
+独立缓存键 4
+正确证据 ['csv-v2']
+旧版本 证据版本不匹配
+旧语料 证据语料修订不匹配
+无证据 insufficient_evidence
+结构合法仍需语义核查 请添加 user_id 列
+
 $ python knowledge_tool.py
 v2 ['csv-v2']
 v1 ['csv-v1']

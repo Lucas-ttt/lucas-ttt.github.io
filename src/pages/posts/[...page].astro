@@ -26,7 +26,7 @@ const { page } = Astro.props;
 
   <Breadcrumb />
 
-  <Main pageTitle="工程笔记" pageDesc="分享 AI Agent 开发中的实现过程、代码分析、实验记录与工程取舍。">
+  <Main pageTitle="工程笔记" pageDesc="从知识库原型到检索、执行与评测，分享实现过程、代码实验和工程取舍。">
     <NoteSeriesIntro count={page.total} />
     <ul>
       {page.data.map(data => <Card {...data} />)}

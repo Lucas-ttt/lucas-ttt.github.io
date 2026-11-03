@@ -1,0 +1,72 @@
+[
+  {
+    "number": 1,
+    "slug": "knowledge-base-project",
+    "title": "从排障资料到可回查答案：我的知识库原型实践",
+    "proseCjk": 1797,
+    "script": "project_walkthrough.py"
+  },
+  {
+    "number": 2,
+    "slug": "rag-architecture-choice",
+    "title": "我为什么给知识库选择 RAG，也保留长上下文和业务接口",
+    "proseCjk": 1850,
+    "script": "route_policy.py"
+  },
+  {
+    "number": 3,
+    "slug": "retrieval-debugging",
+    "title": "原文有答案却没有命中：我怎样沿检索链路定位问题",
+    "proseCjk": 1735,
+    "script": "retrieval_trace.py"
+  },
+  {
+    "number": 4,
+    "slug": "structure-aware-chunking",
+    "title": "我如何拆分手册：保住表头、长段落和跨段条件",
+    "proseCjk": 1948,
+    "script": "structured_chunking.py"
+  },
+  {
+    "number": 5,
+    "slug": "hybrid-search-reranking",
+    "title": "从精确匹配到候选精排：我的混合检索实验",
+    "proseCjk": 1903,
+    "script": "hybrid_rerank.py"
+  },
+  {
+    "number": 6,
+    "slug": "workflow-and-agent-boundaries",
+    "title": "先固定流程，再开放决策：我对 Workflow 和 Agent 的取舍",
+    "proseCjk": 1899,
+    "script": "workflow_agent.py"
+  },
+  {
+    "number": 7,
+    "slug": "reliable-tool-execution",
+    "title": "把工具失败拆开处理：参数校验、有限重试与幂等",
+    "proseCjk": 1718,
+    "script": "tool_safety.py"
+  },
+  {
+    "number": 8,
+    "slug": "rag-evaluation-records",
+    "title": "我给知识库建立了一份可复查的评测记录",
+    "proseCjk": 1710,
+    "script": "rag_evaluation.py"
+  },
+  {
+    "number": 9,
+    "slug": "latency-cost-budget",
+    "title": "先拆开耗时，再决定缓存和预算：我的性能成本实验",
+    "proseCjk": 1919,
+    "script": "latency_cost.py"
+  },
+  {
+    "number": 10,
+    "slug": "knowledge-base-redesign",
+    "title": "如果重做知识库，我会先统一请求、证据与执行契约",
+    "proseCjk": 1919,
+    "script": "redesign_contracts.py"
+  }
+]
