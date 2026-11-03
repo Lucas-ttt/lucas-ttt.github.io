@@ -1,4 +1,4 @@
-# AI Agent 代码实操
+# AI Agent 面试十问 · 配套代码
 
 配套文章：https://lucas-ttt.github.io/posts/
 
@@ -18,6 +18,8 @@
 | 08 | langgraph_agent.py | 真实状态图、固定决策回放与6步停止 |
 | 09 | retry_fallback.py | 四种故障注入与有限重试 |
 | 10 | mcp_client.py | 启动mcp_server.py，发现工具并实际调用 |
+
+补充实验：`chunk_parameter_demo.py` 对比 18／24／36 的切片预算；`rank_fusion_demo.py` 融合两份手工排名。它们对应第02、03篇的独立代码块，不依赖真实向量模型或网络。
 
 ## 环境
 

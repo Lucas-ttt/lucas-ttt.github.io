@@ -87,3 +87,11 @@ $ python mcp_client.py --bad-input
 发现工具 ['lookup_support']
 调用错误 True
 结构化结果 null
+
+$ python chunk_parameter_demo.py
+18 3 False
+24 3 True
+36 2 False
+
+$ python rank_fusion_demo.py
+[('csv-v2', 0.032522), ('encoding-v2', 0.016393)]

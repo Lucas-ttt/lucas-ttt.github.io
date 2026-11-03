@@ -73,6 +73,16 @@
       "command": "python mcp_client.py --bad-input",
       "exitCode": 0,
       "stdout": "发现工具 ['lookup_support']\n调用错误 True\n结构化结果 null"
+    },
+    {
+      "command": "python chunk_parameter_demo.py",
+      "exitCode": 0,
+      "stdout": "18 3 False\n24 3 True\n36 2 False"
+    },
+    {
+      "command": "python rank_fusion_demo.py",
+      "exitCode": 0,
+      "stdout": "[('csv-v2', 0.032522), ('encoding-v2', 0.016393)]"
     }
   ]
 }
