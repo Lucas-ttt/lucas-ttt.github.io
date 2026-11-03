@@ -3,6 +3,7 @@ import type { GetStaticPaths } from "astro";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
+import ProjectCase from "@/components/ProjectCase.astro";
 import { projects, type Project } from "@/data/projects";
 
 export const getStaticPaths = (() =>
@@ -12,6 +13,8 @@ interface Props { project: Project; }
 const { project } = Astro.props;
 const category = project.slug === "attribution-analysis" ? "数据分析Agent" : "知识服务RAG";
 const sections = [
+  { id: "highlights", title: "关键设计亮点" },
+  { id: "cases", title: "具体案例拆解" },
   { id: "overview", title: "业务问题与目标" },
   { id: "contribution", title: "工程设计" },
   { id: "architecture", title: "处理流程" },
@@ -41,41 +44,54 @@ const sections = [
 
     <div class="case-layout">
       <article class="case-content" data-pagefind-body>
+        <section id="highlights">
+          <p class="section-number">01 / KEY DECISIONS</p>
+          <h2>关键设计亮点</h2>
+          <div class="highlight-list">{project.highlights.map((item, index) => <div><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{item.title}</h3><p>{item.description}</p></div></div>)}</div>
+          <a class="text-link" href="#cases">从具体问题看设计选择 <span aria-hidden="true">↓</span></a>
+        </section>
+
+        <section id="cases">
+          <p class="section-number">02 / CASE BREAKDOWN</p>
+          <h2>具体案例拆解</h2>
+          <p>以业务场景和执行边界展开方案，逐项说明风险、设计选择与验证要点。</p>
+          <div class="case-studies">{project.cases.map((study, index) => <ProjectCase {study} {index} />)}</div>
+        </section>
+
         <section id="overview">
-          <p class="section-number">01 / CONTEXT</p>
+          <p class="section-number">03 / CONTEXT</p>
           <h2>业务问题与目标</h2>
           <p>{project.problem}</p>
-          <div class="scenario-block"><span>典型场景</span><p>{project.scenario}</p></div>
           <dl class="fact-list"><div><dt>面向用户</dt><dd>{project.audience}</dd></div><div><dt>项目目标</dt><dd>{project.objective}</dd></div></dl>
         </section>
 
         <section id="contribution">
-          <p class="section-number">02 / RESPONSIBILITIES</p>
+          <p class="section-number">04 / ENGINEERING DESIGN</p>
           <h2>工程设计</h2>
           <ul class="body-list">{project.contribution.map(item => <li>{item}</li>)}</ul>
         </section>
 
         <section id="architecture">
-          <p class="section-number">03 / WORKFLOW</p>
+          <p class="section-number">05 / WORKFLOW</p>
           <h2>处理流程</h2>
           <ol class="flow-list">{project.flow.map((step, index) => <li><span>{String(index + 1).padStart(2, "0")}</span>{step}</li>)}</ol>
           <p class="flow-note">{project.flowNote}</p>
         </section>
 
         <section id="modules">
-          <p class="section-number">04 / MODULES</p>
+          <p class="section-number">06 / MODULES</p>
           <h2>模块设计</h2>
           <div class="module-list">{project.modules.map(module => <div class="module"><h3>{module.title}</h3><p>{module.description}</p></div>)}</div>
         </section>
 
         <section id="reliability">
-          <p class="section-number">05 / RELIABILITY</p>
+          <p class="section-number">07 / RELIABILITY</p>
           <h2>可靠性与取舍</h2>
           <div class="reliability-list">{project.reliability.map((item, index) => <div><span class="reliability-number">{String(index + 1).padStart(2, "0")}</span><div><h3>{item.title}</h3><p>{item.description}</p></div></div>)}</div>
         </section>
 
         <section id="progress">
-          <p class="section-number">06 / VALIDATION</p>
+          <p class="section-number">08 / VALIDATION</p>
           <h2>验证方法</h2>
           <p>{project.slug === "attribution-analysis" ? "围绕经营问题，核对指标口径、SQL 结果、计算文件与报告依据，并为无数据、查询错误和超时分支设计检查项。" : "围绕原文、召回片段、回答引用与异常分支设计检查项，分别核查检索、生成和呈现环节。"}</p>
           <h3 class="acceptance-title">质量核查要点</h3>
@@ -83,7 +99,7 @@ const sections = [
         </section>
 
         <section id="notes">
-          <p class="section-number">07 / FIELD NOTES</p>
+          <p class="section-number">09 / FIELD NOTES</p>
           <h2>相关笔记</h2>
           <p>{project.takeaway}</p>
           <p class="reference-note">参考代码与方案说明架构思路；本人交付与验证结果另行记录。</p>
@@ -92,10 +108,10 @@ const sections = [
               project.slug === "support-knowledge-base" ? (
                 <>
                   <li><a class="text-link" href="/posts/traceable-document-chunks/">从文档读取到可追溯切片 <span aria-hidden="true">↗</span></a></li>
-                  <li><a class="text-link" href="/posts/citations-and-answer-quality/">为什么有引用仍可能答错 <span aria-hidden="true">↗</span></a></li>
+                  <li><a class="text-link" href="/posts/citations-and-answer-quality/">同一错误码，不同版本：引用为何仍可能答错 <span aria-hidden="true">↗</span></a></li>
                 </>
               ) : (
-                <li><a class="text-link" href="/posts/attribution-analysis-design/">电商归因分析参考项目的架构走读 <span aria-hidden="true">↗</span></a></li>
+                <li><a class="text-link" href="/posts/attribution-analysis-design/">退款金额为什么增加：从指标口径到 SQL 复验 <span aria-hidden="true">↗</span></a></li>
               )
             }
           </ul>
@@ -135,9 +151,9 @@ const sections = [
   h3 { font-size: 0.95rem; line-height: 1.7; font-weight: 600; margin: 0 0 0.45rem; }
   .case-content p:not(.section-number):not(.updated-note) { font-size: 0.9rem; line-height: 1.95; }
   .case-content section > p:not(.section-number):not(.updated-note) { color: var(--muted-foreground); margin: 0 0 1rem; }
-  .scenario-block { border-left: 2px solid var(--accent); padding: 0.2rem 0 0.2rem 1.2rem; margin-block: 1.7rem; }
-  .scenario-block > span { font-size: 0.75rem; color: var(--accent); font-weight: 550; }
-  .scenario-block p { margin: 0.45rem 0 0; }
+  .highlight-list > div { display: flex; gap: 1.1rem; padding-block: 1.1rem; border-top: 1px solid var(--border); }
+  .highlight-list > div > span { color: var(--accent); font: 0.7rem/1.8 ui-monospace, monospace; padding-top: 0.15rem; }
+  .highlight-list p { color: var(--muted-foreground); margin: 0; }
   .fact-list { margin: 1.6rem 0 0; }
   .fact-list > div { display: grid; grid-template-columns: 5rem 1fr; gap: 1rem; padding-block: 0.8rem; border-top: 1px solid var(--border); font-size: 0.82rem; line-height: 1.9; }
   .fact-list dt { color: var(--muted-foreground); }

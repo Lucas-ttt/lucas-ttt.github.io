@@ -8,6 +8,7 @@
 
 - 写文章：src/content/posts/，复制一篇Markdown并修改标题、摘要、日期和标签。
 - 修改项目名称、顺序与设计说明：src/data/projects.ts。当前归因分析第一、企业知识库第二。
+- 修改亮点：每个项目的 highlights；修改案例：cases。案例包含用户问题、风险、设计选择、验证项和材料说明，会同步出现在首页与项目页。
 - 修改首页：src/pages/index.astro。
 - 修改个人介绍：src/content/pages/about.md。
 - 修改站点配置：astro-paper.config.ts。

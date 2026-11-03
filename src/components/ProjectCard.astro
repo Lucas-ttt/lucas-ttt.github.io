@@ -17,6 +17,7 @@ const category = project.slug === "attribution-analysis" ? "数据分析Agent" :
   <h3><a href={`/projects/${project.slug}/`}>{project.title}</a></h3>
   <p class="project-subtitle">{project.subtitle}</p>
   <p class="project-description">{project.summary}</p>
+  <div class="case-entry"><span>案例切入</span><a href={`/projects/${project.slug}/#cases`}>{project.cases[0].question}<span aria-hidden="true">↗</span></a></div>
   <ul class="project-tags" aria-label="技术与主题">
     {project.tags.map(tag => <li>{tag}</li>)}
   </ul>
@@ -52,6 +53,11 @@ const category = project.slug === "attribution-analysis" ? "数据分析Agent" :
   .project-card h3 a:hover { color: var(--accent); }
   .project-subtitle { font-size: 0.88rem; color: var(--accent); margin: 0.55rem 0 1rem; line-height: 1.7; }
   .project-description { margin: 0; font-size: 0.87rem; line-height: 1.95; color: var(--muted-foreground); }
+  .case-entry { padding: 0.9rem 1rem; margin-top: 1.2rem; border-left: 2px solid var(--accent); background: var(--muted); border-radius: 0 0.3rem 0.3rem 0; }
+  .case-entry > span { display: block; color: var(--muted-foreground); font-size: 0.65rem; margin-bottom: 0.35rem; }
+  .case-entry a { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; font-size: 0.82rem; line-height: 1.8; text-decoration: none; }
+  .case-entry a:hover { color: var(--accent); }
+  .case-entry a span { flex-shrink: 0; color: var(--accent); }
   .project-tags { display: flex; flex-wrap: wrap; list-style: none; gap: 0.4rem; padding: 0; margin: 1.35rem 0 1.65rem; }
   .project-tags li { padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 0.25rem; font-size: 0.66rem; line-height: 1.5; }
   .project-link { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1.15rem; margin-top: auto; font-size: 0.8rem; font-weight: 550; text-decoration: none; }

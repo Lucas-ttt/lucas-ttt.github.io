@@ -1,0 +1,32 @@
+---
+import { projects } from "@/data/projects";
+---
+
+<section class="portfolio-highlights" aria-labelledby="highlights-title">
+  <div class="highlights-heading"><p>ENGINEERING DECISIONS</p><h2 id="highlights-title">把容易出错的地方，设计清楚</h2><span>从业务口径与产品版本出发，展开取数、检索和结果核查的设计。</span></div>
+  <div class="highlight-rows">
+    {projects.map(project => <article class="highlight-row">
+      <div class="project-context"><span>{project.number} / {project.slug === "attribution-analysis" ? "AGENT" : "RAG"}</span><h3>{project.title}</h3><a href={`/projects/${project.slug}/#cases`}>看具体案例 <span aria-hidden="true">↗</span></a></div>
+      <dl>{project.highlights.map(item => <div><dt>{item.title}</dt><dd>{item.description}</dd></div>)}</dl>
+    </article>)}
+  </div>
+</section>
+
+<style>
+  .portfolio-highlights { padding-block: 2.1rem 3.4rem; border-top: 1px solid var(--border); }
+  .highlights-heading { margin-bottom: 1.8rem; }
+  .highlights-heading > p { color: var(--muted-foreground); font-size: 0.63rem; letter-spacing: 1.7px; font-weight: 650; margin: 0; }
+  h2 { font-size: 1.44rem; font-weight: 650; line-height: 1.6; letter-spacing: -0.03em; margin: 0.55rem 0 0.5rem; }
+  .highlights-heading > span { color: var(--muted-foreground); font-size: 0.8rem; line-height: 1.9; }
+  .highlight-row { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 2rem; padding-block: 1.6rem; border-top: 1px solid var(--border); }
+  .project-context > span { color: var(--accent); font: 0.62rem/1.6 ui-monospace, monospace; letter-spacing: 0.05em; }
+  h3 { font-size: 0.96rem; font-weight: 600; margin: 0.5rem 0 0.85rem; }
+  .project-context a { color: var(--muted-foreground); font-size: 0.72rem; }
+  .project-context a:hover { color: var(--accent); }
+  .project-context a span { margin-left: 0.8rem; color: var(--accent); }
+  dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; margin: 0; }
+  dt { font-size: 0.86rem; font-weight: 600; margin-bottom: 0.45rem; }
+  dd { margin: 0; color: var(--muted-foreground); font-size: 0.79rem; line-height: 1.95; }
+  @media (max-width: 900px) { .highlight-row { grid-template-columns: 10rem minmax(0, 1fr); gap: 1.4rem; } dl { gap: 1.4rem; } }
+  @media (max-width: 700px) { .portfolio-highlights { padding-block: 1.8rem 2.3rem; } h2 { font-size: 1.25rem; } .highlight-row { grid-template-columns: 1fr; gap: 1.3rem; } .project-context { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 1rem; align-items: center; } .project-context > span { grid-column: 1 / -1; } h3 { margin: 0; } dl { grid-template-columns: 1fr; gap: 1.1rem; } }
+</style>
