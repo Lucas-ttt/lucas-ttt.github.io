@@ -6,6 +6,7 @@
 
 ## 日常编辑
 
+- 内容定位与写作约定：先读CONTENT_GUIDE.md，保持个人技术分享与工程实践的叙述方式。
 - 写文章：src/content/posts/，复制一篇Markdown并修改标题、摘要、日期和标签。
 - 系列文章：series 指定系列名，seriesOrder 指定阅读序号，noteType 可用代码实操、实践记录、设计笔记、架构分析与开源研读；日期填写真实整理时间，更新时填写 modDatetime。
 - 修改项目名称、顺序与设计说明：src/data/projects.ts。当前归因分析第一、企业知识库第二。
@@ -17,7 +18,7 @@
 
 文章中的“## 目录”会根据后面的标题生成可折叠目录。draft: true 为草稿，发布时改为 false。
 
-工程笔记目前为10篇“AI Agent 代码实操”，每篇包含完整Python代码、执行命令、实际输出、改错实验及原文入口。文章页按seriesOrder展示，首页精选由featured控制；原始日期仍用于订阅和结构化元信息。中文阅读入口涵盖牛客、博客园，示例为独立编写的演练，不收录未授权博客全文。
+工程笔记目前为10篇“AI Agent 开发实践”，以个人实验与技术分享组织内容，每篇包含实现过程、完整Python代码、逐段分析、实际输出与工程取舍。文章不展示外部引用来源地址或参考清单；保留站内代码下载与运行说明。文章页按seriesOrder展示，首页精选由featured控制；原始日期仍用于订阅和结构化元信息。
 
 下载包在public/examples/agent-lab.zip，源文件及运行记录在public/examples/agent-lab/。修改脚本时需要同步文章代码块，并实际重跑后更新verification.json和verified-output.txt；不能只改显示输出。标准库示例、LangGraph和MCP已执行验证，真实外部模型--live模式需使用自己的服务配置另行验证。
 
