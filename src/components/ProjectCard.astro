@@ -6,14 +6,13 @@ interface Props {
 }
 
 const { project } = Astro.props;
+const category = project.slug === "attribution-analysis" ? "数据分析Agent" : "知识服务RAG";
 ---
 
 <article class="project-card">
   <div class="card-topline">
     <span class="project-number">PROJECT / {project.number}</span>
-    <span class:list={["status", { "status-planned": project.status === "方案设计" }]}>
-      <span aria-hidden="true"></span>{project.status}
-    </span>
+    <span class="project-category">{category}</span>
   </div>
   <h3><a href={`/projects/${project.slug}/`}>{project.title}</a></h3>
   <p class="project-subtitle">{project.subtitle}</p>
@@ -22,7 +21,7 @@ const { project } = Astro.props;
     {project.tags.map(tag => <li>{tag}</li>)}
   </ul>
   <a class="project-link" href={`/projects/${project.slug}/`}>
-    查看项目方案与进展
+    查看项目案例
     <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none">
       <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
@@ -47,9 +46,7 @@ const { project } = Astro.props;
   }
   .card-topline { display: flex; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.65rem; }
   .project-number { font: 0.69rem/1.5 "Cascadia Code", Consolas, monospace; letter-spacing: 0.08em; color: var(--muted-foreground); }
-  .status { display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0; color: var(--accent); font-size: 0.73rem; line-height: 1.5; }
-  .status span { width: 0.35rem; height: 0.35rem; border-radius: 100%; background: currentColor; }
-  .status-planned { color: var(--muted-foreground); }
+  .project-category { color: var(--accent); font-size: 0.73rem; line-height: 1.5; white-space: nowrap; }
   .project-card h3 { font-size: clamp(1.2rem, 2vw, 1.45rem); font-weight: 650; line-height: 1.4; margin: 0; letter-spacing: -0.02em; }
   .project-card h3 a { text-decoration: none; }
   .project-card h3 a:hover { color: var(--accent); }

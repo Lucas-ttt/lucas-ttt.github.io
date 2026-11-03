@@ -6,12 +6,12 @@ import ProjectCard from "@/components/ProjectCard.astro";
 import { projects } from "@/data/projects";
 ---
 
-<Layout title="项目 | Lucas_AI" description="围绕企业技术支持场景，展示知识库问答与业务 Agent 的项目方案、实现进展及验证方法。">
+<Layout title="项目 | Lucas_AI" description="电商归因分析与企业知识库项目案例：业务场景、系统架构、可靠性设计与验证方法。">
   <Header />
   <main id="main-content" class="project-index app-layout">
     <p class="eyebrow">SELECTED PROJECTS</p>
     <h1>从业务问题出发，<br />把实现过程展开。</h1>
-    <p class="index-intro">一个项目关注答案的依据，一个项目关注任务的执行。它们围绕同一个技术支持场景，分别记录设计取舍、实现边界与验证过程。</p>
+    <p class="index-intro">从经营指标的变化分析，到企业知识的检索问答。围绕两个业务场景，展开系统架构、关键设计与结果核查方法。</p>
     <div class="project-grid">
       {projects.map(project => <ProjectCard project={project} />)}
     </div>
@@ -19,7 +19,7 @@ import { projects } from "@/data/projects";
       <span class="note-mark" aria-hidden="true">↗</span>
       <div>
         <h2 id="method-title">看方案，也看证据</h2>
-        <p>项目页保留当前阶段、已运行的内容与后续验收条件。技术笔记记录具体问题和思路，完成一项能力后再补充对应的代码与测试结果。</p>
+        <p>从业务问题进入处理流程，查看模块职责、可靠性取舍与质量核查要点。参考架构、方案设计和实际验证分别说明，便于围绕具体实现展开交流。</p>
         <a href="/posts/">阅读技术笔记 <span aria-hidden="true">→</span></a>
       </div>
     </section>
