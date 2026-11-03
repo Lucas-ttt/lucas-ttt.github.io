@@ -24,6 +24,7 @@ const t = useTranslations(locale);
 
 const posts = await getCollection("posts");
 const filteredPosts = posts.filter(postFilter);
+const archiveDate = (post: (typeof filteredPosts)[number]) => post.data.archiveDatetime ?? post.data.pubDatetime;
 const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 ---
 
@@ -32,11 +33,11 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.archivesTitle} pageDesc={t.pages.archivesDesc}>
+  <Main pageTitle={t.pages.archivesTitle} pageDesc="按自定义归档日期编排，文章正文另保留实际整理与更新记录。">
     {
       Object.entries(
         getPostsByGroupCondition(filteredPosts, post =>
-          post.data.pubDatetime.getFullYear()
+          archiveDate(post).getFullYear()
         )
       )
         .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
@@ -47,7 +48,7 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
             {Object.entries(
               getPostsByGroupCondition(
                 yearGroup,
-                post => post.data.pubDatetime.getMonth() + 1
+                post => archiveDate(post).getMonth() + 1
               )
             )
               .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
@@ -68,10 +69,10 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
                       .sort(
                         (a, b) =>
                           Math.floor(
-                            new Date(b.data.pubDatetime).getTime() / 1000
+                            archiveDate(b).getTime() / 1000
                           ) -
                           Math.floor(
-                            new Date(a.data.pubDatetime).getTime() / 1000
+                            archiveDate(a).getTime() / 1000
                           )
                       )
                       .map(data => (

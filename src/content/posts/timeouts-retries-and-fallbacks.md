@@ -2,6 +2,7 @@
 title: 模型超时后怎么办：重试预算与原文降级
 description: 从知识问答的超时场景出发，区分可重试错误、结果未知、总等待预算与原文降级，设计可核查的失败路径。
 pubDatetime: 2026-11-03T10:00:00+08:00
+archiveDatetime: 2025-01-26T12:00:00+08:00
 featured: false
 draft: false
 tags:

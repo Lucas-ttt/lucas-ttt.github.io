@@ -2,6 +2,7 @@
 title: 错误码与同义问法：何时组合关键词和向量检索
 description: 围绕技术支持检索，区分精确条件、语义召回、排序融合与重排，并用固定基线判断复杂度是否值得增加。
 pubDatetime: 2026-11-03T10:00:00+08:00
+archiveDatetime: 2026-01-07T12:00:00+08:00
 featured: false
 draft: false
 series: 可靠 AI 应用工程

@@ -17,6 +17,7 @@ type Props = {
   timezone?: string;
   modDatetime?: string | Date | null;
   noteType?: string;
+  archiveDatetime?: string | Date;
 };
 
 const {
@@ -26,6 +27,7 @@ const {
   class: className = "",
   timezone: postTimezone,
   noteType,
+  archiveDatetime,
 } = Astro.props;
 
 const t = useTranslations(Astro.currentLocale);
@@ -37,10 +39,13 @@ const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
 );
 
 const date = datetime.format("YYYY.MM.DD");
+const archiveDate = archiveDatetime
+  ? dayjs(archiveDatetime).tz(resolveTimezone(postTimezone ?? config.site.timezone))
+  : null;
 ---
 
 <div
-  class:list={["text-muted-foreground flex items-center gap-x-2", className]}
+  class:list={["text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1", className]}
 >
   <IconCalendar
     class:list={[
@@ -49,16 +54,18 @@ const date = datetime.format("YYYY.MM.DD");
     ]}
   />
   {
-    (isModified || noteType) && (
+    (archiveDate || isModified || noteType) && (
       <span class:list={["text-sm", { "sm:text-base": size === "lg" }]}>
-        {isModified ? t.post.updatedAt : "整理于"}:
+        {archiveDate ? "归档日期" : isModified ? t.post.updatedAt : "整理于"}:
       </span>
     )
   }
   <time
     class:list={["text-sm", { "sm:text-base": size === "lg" }]}
-    datetime={datetime.toISOString()}
+    datetime={(archiveDate ?? datetime).toISOString()}
+    data-date-kind={archiveDate ? "archive" : "actual"}
   >
-    {date}
+    {archiveDate ? archiveDate.format("YYYY.MM.DD") : date}
   </time>
+  {archiveDate && size === "lg" && <span class="text-sm"><span aria-hidden="true">· </span>{isModified ? "更新于" : "整理于"} <time datetime={datetime.toISOString()} data-date-kind="actual">{date}</time></span>}
 </div>

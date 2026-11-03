@@ -2,6 +2,7 @@
 title: 退款金额为什么增加：从指标口径到 SQL 复验
 description: 用退款分析场景拆解统计时间、金额单位、SQL 纠错复验与报告核查，说明归因分析系统的参考架构和改造设计。
 pubDatetime: 2026-11-03T10:00:00+08:00
+archiveDatetime: 2025-06-11T12:00:00+08:00
 featured: true
 draft: false
 series: 可靠 AI 应用工程
