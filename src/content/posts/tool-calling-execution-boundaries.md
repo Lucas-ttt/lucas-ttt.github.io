@@ -2,7 +2,7 @@
 title: 模型提出调用以后：工具执行的校验、权限与停止条件
 description: 用退款查询的假设场景拆解模型请求与应用执行，讨论参数、权限、结果状态和循环预算，避免把工具调用误当成可靠交付。
 pubDatetime: 2026-11-03T10:00:00+08:00
-archiveDatetime: 2025-02-13T12:00:00+08:00
+archiveDatetime: 2026-02-02T12:00:00+08:00
 featured: false
 draft: false
 tags:

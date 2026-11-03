@@ -2,7 +2,7 @@
 title: 小规模 RAG 评测：先把问题、证据和分母写清
 description: 用技术支持案例设计可复查的小评测，区分证据覆盖、引用支持与答案适用性，并记录基线、留出问题和失败复测。
 pubDatetime: 2026-11-03T10:00:00+08:00
-archiveDatetime: 2025-11-17T12:00:00+08:00
+archiveDatetime: 2026-04-06T12:00:00+08:00
 featured: false
 draft: false
 series: 可靠 AI 应用工程

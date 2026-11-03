@@ -2,7 +2,7 @@
 title: 聊天记录越多越好吗：上下文预算与会话隔离
 description: 从产品版本切换的假设场景出发，讨论线程状态、输入预算、历史裁剪与摘要失真的取舍，并给出核查清单。
 pubDatetime: 2026-11-03T10:00:00+08:00
-archiveDatetime: 2025-06-02T12:00:00+08:00
+archiveDatetime: 2026-03-07T12:00:00+08:00
 featured: true
 draft: false
 tags:

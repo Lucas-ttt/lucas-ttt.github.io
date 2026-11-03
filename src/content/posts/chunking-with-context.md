@@ -2,7 +2,7 @@
 title: 切分文档时，怎样把业务条件一起留下
 description: 从标题、版本和操作前提出发，分析切分边界、字符与 token、重叠片段及参数对照的方法。
 pubDatetime: 2026-11-03T10:00:00+08:00
-archiveDatetime: 2026-05-10T12:00:00+08:00
+archiveDatetime: 2026-07-30T12:00:00+08:00
 featured: false
 draft: false
 series: 可靠 AI 应用工程

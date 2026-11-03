@@ -2,7 +2,7 @@
 title: Skill、MCP 与 harness：一次检索调用由谁负责
 description: 用只读知识检索场景区分任务说明、工具协议和运行控制，展开参数校验、来源核查与停止条件的设计边界。
 pubDatetime: 2026-11-03T10:00:00+08:00
-archiveDatetime: 2025-01-21T12:00:00+08:00
+archiveDatetime: 2026-01-05T12:00:00+08:00
 featured: false
 draft: false
 tags:

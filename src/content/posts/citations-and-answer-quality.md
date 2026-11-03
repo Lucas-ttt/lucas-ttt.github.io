@@ -2,7 +2,7 @@
 title: 同一错误码，不同版本：RAG 引用为什么仍可能答错
 description: 用产品版本冲突案例拆解检索约束、引用支持关系与异常反馈，展示知识库问答的质量验证设计。
 pubDatetime: 2026-11-03T10:00:00+08:00
-archiveDatetime: 2026-01-02T12:00:00+08:00
+archiveDatetime: 2026-04-27T12:00:00+08:00
 featured: true
 draft: false
 series: 可靠 AI 应用工程
