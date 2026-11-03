@@ -1,0 +1,42 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import ProjectCard from "@/components/ProjectCard.astro";
+import { projects } from "@/data/projects";
+---
+
+<Layout title="项目 | Lucas_AI" description="围绕企业技术支持场景，展示知识库问答与业务 Agent 的项目方案、实现进展及验证方法。">
+  <Header />
+  <main id="main-content" class="project-index app-layout">
+    <p class="eyebrow">SELECTED PROJECTS</p>
+    <h1>从业务问题出发，<br />把实现过程展开。</h1>
+    <p class="index-intro">一个项目关注答案的依据，一个项目关注任务的执行。它们围绕同一个技术支持场景，分别记录设计取舍、实现边界与验证过程。</p>
+    <div class="project-grid">
+      {projects.map(project => <ProjectCard project={project} />)}
+    </div>
+    <section class="method-note" aria-labelledby="method-title">
+      <span class="note-mark" aria-hidden="true">↗</span>
+      <div>
+        <h2 id="method-title">看方案，也看证据</h2>
+        <p>项目页保留当前阶段、已运行的内容与后续验收条件。技术笔记记录具体问题和思路，完成一项能力后再补充对应的代码与测试结果。</p>
+        <a href="/posts/">阅读技术笔记 <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .project-index { padding-block: 4rem 4.5rem; }
+  .eyebrow { font: 0.72rem/1.5 "Cascadia Code", Consolas, monospace; letter-spacing: 0.16em; color: var(--accent); margin: 0 0 1.2rem; }
+  h1 { font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.4; letter-spacing: -0.035em; font-weight: 650; margin: 0; }
+  .index-intro { max-width: 42rem; color: var(--muted-foreground); font-size: 0.96rem; line-height: 1.95; margin: 1.4rem 0 3rem; }
+  .project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+  .method-note { display: flex; align-items: flex-start; gap: 1.3rem; padding: 2rem 0 0; margin-top: 3rem; border-top: 1px solid var(--border); }
+  .note-mark { font-size: 1.5rem; color: var(--accent); line-height: 1; }
+  .method-note h2 { margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 600; }
+  .method-note p { max-width: 43rem; margin: 0 0 0.8rem; color: var(--muted-foreground); font-size: 0.87rem; line-height: 1.9; }
+  .method-note a { font-size: 0.83rem; color: var(--accent); text-underline-offset: 4px; }
+  @media (max-width: 700px) { .project-index { padding-block: 2.5rem 3rem; } .project-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,30 @@
+name: Publish Lucas_AI blog
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build Astro and search index
+        uses: withastro/action@v6
+        with:
+          node-version: 24
+          package-manager: pnpm@11.25.0
+        env:
+          ASTRO_TELEMETRY_DISABLED: '1'
+      - name: Publish GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

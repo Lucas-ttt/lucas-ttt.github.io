@@ -1,0 +1,24 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+---
+<Layout title="简历与联系 | Lucas_AI" description="Lucas_AI 的求职方向、项目实践、教育背景与简历下载。">
+<Header/>
+<main id="main-content" class="app-layout resume-page">
+  <div class="page-heading"><p>PROFILE / RESUME</p><h1>简历与联系</h1><span>从项目细节开始，了解我的实践方向。</span></div>
+  <div class="resume-grid">
+    <article class="resume-sheet" data-pagefind-body>
+      <div class="sheet-heading"><div><h2>Lucas_AI</h2><p>AI 应用开发方向 · RAG / Agent</p></div><span class="city">深圳</span></div>
+      <section><h3>关注方向</h3><p>面向企业知识服务与业务流程自动化，围绕检索问答、答案溯源、工具接入和异常处理推进个人项目。</p></section>
+      <section><h3>项目实践</h3><a href="/projects/support-knowledge-base/"><strong>企业技术支持知识库 <span>↗</span></strong></a><p>以产品手册、FAQ 和排障指南为知识来源，设计可回查依据的问答流程。文档处理原型已运行验证，完整 RAG 链路开发中。</p><a href="/projects/support-ticket-agent/"><strong>归因分析系统 <span>↗</span></strong></a><p>基于 Hermes Agent 的项目方案，规划故障线索、证据检索、原因假设、核验步骤和归因报告，目前尚未开始开发。</p></section>
+      <section><h3>教育背景</h3><strong>烟台大学 · 本科</strong><p>环境科学与工程 · 2021.06 毕业</p></section>
+      <section><h3>联系方式</h3><p><a href="mailto:J1666830991@gmail.com">J1666830991@gmail.com</a><br/><a href="tel:19147730231">19147730231</a></p></section>
+    </article>
+    <aside><div class="download-panel"><p class="aside-label">TAKE A COPY</p><h2>带走一份简历</h2><p>查看项目阶段与设计重点，也欢迎就具体实现与我交流。</p><a class="download-button" href="/downloads/lucas-ai-resume.pdf" download>下载 PDF 简历 <span>↓</span></a><a class="markdown-link" href="/downloads/lucas-ai-resume.md" download>下载 Markdown 版本 ↓</a><hr/><p class="aside-label">LET’S CONNECT</p><a href="mailto:J1666830991@gmail.com" class="contact-link">邮件联系 Lucas_AI ↗</a><p class="updated">更新于 2026.11.03</p></div></aside>
+  </div>
+</main><Footer/>
+</Layout>
+<style>
+.resume-page{padding-block:50px 70px}.page-heading>p,.aside-label{color:var(--accent);font-size:10px;letter-spacing:1.7px;font-weight:650}.page-heading h1{font-size:36px;font-weight:700;letter-spacing:-1px;margin-block:8px}.page-heading>span{color:var(--muted-foreground);font-size:13px}.resume-grid{display:grid;grid-template-columns:1fr 280px;gap:32px;margin-top:35px}.resume-sheet{border:1px solid var(--border);padding:35px;background:var(--background);border-radius:7px}.sheet-heading{display:flex;justify-content:space-between;align-items:start;padding-bottom:25px;border-bottom:1px solid var(--border)}.sheet-heading h2{font-size:26px;font-weight:700}.sheet-heading p{font-size:13px;color:var(--muted-foreground);margin-top:5px}.city{font-size:11px;padding:3px 9px;background:var(--muted);border-radius:20px}.resume-sheet section{margin-top:27px}.resume-sheet h3{font-size:11px;color:var(--accent);font-weight:650;letter-spacing:1px;margin-bottom:12px}.resume-sheet strong{font-size:14px;font-weight:650}.resume-sheet strong span{color:var(--accent);margin-left:7px}.resume-sheet p{font-size:13px;line-height:1.9;color:var(--muted-foreground);margin-block:8px 17px}.resume-sheet a:hover{color:var(--accent)}.download-panel{padding:25px;background:var(--muted);border:1px solid var(--border);border-radius:7px;position:sticky;top:30px}.download-panel h2{font-size:20px;font-weight:650;margin-block:9px}.download-panel>p:not(.aside-label){font-size:12px;color:var(--muted-foreground)}.download-button{display:flex;justify-content:space-between;align-items:center;background:var(--accent);color:var(--accent-foreground);padding:11px 13px;font-size:12px;border-radius:4px;margin-top:20px}.markdown-link{display:block;font-size:11px;text-align:center;color:var(--muted-foreground);margin-top:12px}.download-panel hr{margin-block:24px}.contact-link{display:block;font-size:12px;margin-top:10px}.download-panel .updated{font-size:10px;margin-top:24px}@media(max-width:800px){.resume-grid{grid-template-columns:1fr}.resume-sheet{padding:23px}.page-heading h1{font-size:30px}.resume-page{padding-top:35px}}
+</style>

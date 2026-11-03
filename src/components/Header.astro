@@ -1,0 +1,30 @@
+---
+import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
+import IconMoon from "@/assets/icons/IconMoon.svg";
+const links = [{url:"/",label:"首页"},{url:"/projects/",label:"项目"},{url:"/posts/",label:"文章"},{url:"/about/",label:"关于"}];
+const current = Astro.url.pathname;
+---
+<a class="skip-link" href="#main-content">跳转到内容</a>
+<header class="site-header">
+  <div class="app-layout header-inner">
+    <a href="/" class="brand" aria-label="Lucas_AI 首页"><span class="brand-icon">L<span>_</span></span><span>Lucas<span class="brand-ai">_AI</span></span></a>
+    <nav aria-label="主导航">
+      {links.map(link => <a href={link.url} aria-current={(link.url === "/" ? current === "/" : current.startsWith(link.url)) ? "page" : undefined}>{link.label}</a>)}
+    </nav>
+    <div class="header-actions">
+      <a href="/search/" class="search-link" aria-label="搜索文章"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>搜索</span></a>
+      <button id="theme-btn" class="theme-button" title="切换深浅色" aria-label="切换深浅色" aria-live="polite"><IconMoon class="moon-icon"/><IconSunHigh class="sun-icon"/></button>
+      <a href="/resume/" class="resume-link">查看简历 <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</header>
+<style>
+.site-header{border-bottom:1px solid var(--border);background:var(--background)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:88px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:750;letter-spacing:-.6px;white-space:nowrap}
+.brand-icon{width:31px;height:31px;background:var(--foreground);color:var(--background);font:700 21px/31px monospace;text-align:center;border-radius:7px}.brand-icon span{color:#a2d0a9}.brand-ai{color:var(--accent)}
+nav{display:flex;gap:26px}nav a{font-size:14px;color:var(--muted-foreground);padding:9px 0}nav a:hover,nav a[aria-current]{color:var(--foreground)}nav a[aria-current]{box-shadow:0 2px 0 var(--accent)}
+.header-actions{display:flex;align-items:center;gap:17px}.search-link{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted-foreground)}.theme-button{width:24px;height:28px;position:relative}.theme-button svg{width:19px;height:19px;position:absolute;inset:4px 2px}.sun-icon{display:none}:global([data-theme="dark"]) .sun-icon{display:block}:global([data-theme="dark"]) .moon-icon{display:none}
+.resume-link{font-size:13px;border:1px solid var(--border);padding:7px 12px;border-radius:5px}.resume-link:hover{border-color:var(--accent);color:var(--accent)}.skip-link{position:absolute;top:-100px;z-index:100;background:var(--background);padding:12px}.skip-link:focus{top:0}
+@media(max-width:700px){.header-inner{flex-wrap:wrap;gap:4px 12px;padding-block:15px;min-height:90px}.brand{font-size:19px}.header-actions{gap:13px}nav{order:3;width:100%;gap:30px;margin-top:8px}nav a{font-size:13px}.search-link span{display:none}.resume-link{padding:5px 9px}}
+</style>

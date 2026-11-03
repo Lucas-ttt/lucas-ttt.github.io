@@ -1,0 +1,66 @@
+---
+import type { Project } from "@/data/projects";
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+---
+
+<article class="project-card">
+  <div class="card-topline">
+    <span class="project-number">PROJECT / {project.number}</span>
+    <span class:list={["status", { "status-planned": project.status === "方案设计" }]}>
+      <span aria-hidden="true"></span>{project.status}
+    </span>
+  </div>
+  <h3><a href={`/projects/${project.slug}/`}>{project.title}</a></h3>
+  <p class="project-subtitle">{project.subtitle}</p>
+  <p class="project-description">{project.summary}</p>
+  <ul class="project-tags" aria-label="技术与主题">
+    {project.tags.map(tag => <li>{tag}</li>)}
+  </ul>
+  <a class="project-link" href={`/projects/${project.slug}/`}>
+    查看项目方案与进展
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none">
+      <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </a>
+</article>
+
+<style>
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 0;
+    padding: 1.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.8rem;
+    background: var(--background);
+    transition: border-color 180ms ease, transform 180ms ease;
+  }
+  .project-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+  .card-topline { display: flex; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.65rem; }
+  .project-number { font: 0.69rem/1.5 "Cascadia Code", Consolas, monospace; letter-spacing: 0.08em; color: var(--muted-foreground); }
+  .status { display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0; color: var(--accent); font-size: 0.73rem; line-height: 1.5; }
+  .status span { width: 0.35rem; height: 0.35rem; border-radius: 100%; background: currentColor; }
+  .status-planned { color: var(--muted-foreground); }
+  .project-card h3 { font-size: clamp(1.2rem, 2vw, 1.45rem); font-weight: 650; line-height: 1.4; margin: 0; letter-spacing: -0.02em; }
+  .project-card h3 a { text-decoration: none; }
+  .project-card h3 a:hover { color: var(--accent); }
+  .project-subtitle { font-size: 0.88rem; color: var(--accent); margin: 0.55rem 0 1rem; line-height: 1.7; }
+  .project-description { margin: 0; font-size: 0.87rem; line-height: 1.95; color: var(--muted-foreground); }
+  .project-tags { display: flex; flex-wrap: wrap; list-style: none; gap: 0.4rem; padding: 0; margin: 1.35rem 0 1.65rem; }
+  .project-tags li { padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 0.25rem; font-size: 0.66rem; line-height: 1.5; }
+  .project-link { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1.15rem; margin-top: auto; font-size: 0.8rem; font-weight: 550; text-decoration: none; }
+  .project-link svg { transition: transform 180ms ease; }
+  .project-link:hover { color: var(--accent); }
+  .project-link:hover svg { transform: translateX(3px); }
+  @media (max-width: 540px) { .project-card { padding: 1.4rem; } }
+  @media (prefers-reduced-motion: reduce) { .project-card, .project-link svg { transition: none; } .project-card:hover { transform: none; } }
+</style>

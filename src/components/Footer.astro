@@ -1,0 +1,9 @@
+---
+type Props = { noMarginTop?: boolean; class?: string };
+const { class: className } = Astro.props;
+---
+<footer class:list={["site-footer",className]}>
+  <div class="app-layout footer-inner"><div><a href="/" class="footer-brand">Lucas_AI</a><p>把项目做具体，把过程讲清楚。</p></div><div class="footer-links"><a href="mailto:J1666830991@gmail.com">联系我 ↗</a><a href="/tags/">主题索引</a><a href="/rss.xml">RSS</a></div></div>
+  <div class="app-layout footer-meta"><span>© 2026 Lucas_AI · AI 工程实践</span><a href="https://github.com/satnaing/astro-paper" target="_blank" rel="noopener noreferrer">Built with AstroPaper ↗</a></div>
+</footer>
+<style>.site-footer{border-top:1px solid var(--border);margin-top:auto;padding-block:33px 20px}.footer-inner,.footer-meta{display:flex;justify-content:space-between;gap:20px}.footer-brand{font-weight:700;letter-spacing:-.5px}.footer-inner p{font-size:12px;color:var(--muted-foreground);margin-top:5px}.footer-links{display:flex;gap:24px;font-size:13px;align-items:center}.footer-links a:hover{color:var(--accent)}.footer-meta{margin-top:28px;color:var(--muted-foreground);font-size:11px}.footer-meta a{opacity:.8}@media(max-width:600px){.footer-inner{flex-direction:column}.footer-links{gap:22px}.footer-meta{font-size:10px;gap:10px}}</style>

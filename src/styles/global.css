@@ -1,0 +1,49 @@
+@import "tailwindcss";
+@import "./theme.css";
+@import "./typography.css";
+@import "rehype-callouts/theme/obsidian";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@layer base {
+  * {
+    @apply border-border outline-accent/75;
+    scrollbar-width: auto;
+    scrollbar-color: var(--color-muted) transparent;
+  }
+  a,
+  button,
+  #main-content {
+    @apply outline-accent outline-offset-1 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility max-w-app {
+  @apply max-w-6xl;
+}
+
+@utility app-layout {
+  @apply max-w-app mx-auto w-full px-5 sm:px-8;
+}
+
+@utility active-nav {
+  @apply underline decoration-wavy decoration-2 underline-offset-8;
+}
+
+:target {
+  scroll-margin-block: 6rem;
+}
+
+body { line-height: 1.8; }
+html { text-underline-offset: 4px; }
+.app-prose { max-width: 76ch; margin-inline: auto; }
+.app-prose h2 { scroll-margin-top: 6rem; }
+main[data-pagefind-body] { max-width: 850px; padding-top: 2rem; }
+main[data-backurl] { padding-block: 1.5rem 4rem; }
+button, a { -webkit-tap-highlight-color: transparent; }
+::selection { background: #b9d9c8; color: #12382a; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto !important; } * { transition-duration: 0.01ms !important; } }

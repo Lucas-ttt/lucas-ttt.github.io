@@ -1,0 +1,17 @@
+@theme inline {
+  --color-background: var(--background); --color-foreground: var(--foreground);
+  --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --font-app: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+:root, [data-theme="light"] {
+  --background: #fafaf7; --foreground: #202d29; --accent: #246c50;
+  --accent-foreground: #ffffff; --muted: #e9eee8;
+  --muted-foreground: #66746c; --border: #dce3db;
+}
+[data-theme="dark"] {
+  --background: #14201c; --foreground: #e4ece7; --accent: #95d4b0;
+  --accent-foreground: #14201c; --muted: #24372e;
+  --muted-foreground: #a8bbb0; --border: #34483d;
+}
