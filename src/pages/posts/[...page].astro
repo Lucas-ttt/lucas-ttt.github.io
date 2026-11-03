@@ -8,27 +8,26 @@ import Main from "@/components/Main.astro";
 import Card from "@/components/Card.astro";
 import Footer from "@/components/Footer.astro";
 import Pagination from "@/components/Pagination.astro";
-import { getSortedPosts } from "@/utils/getSortedPosts";
-import { useTranslations } from "@/i18n";
+import { getReadingPosts } from "@/utils/getReadingPosts";
+import NoteSeriesIntro from "@/components/NoteSeriesIntro.astro";
 import config from "@/config";
 
 export const getStaticPaths = (async ({ paginate }) => {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
-  return paginate(getSortedPosts(posts), { pageSize: config.posts.perPage });
+  return paginate(getReadingPosts(posts), { pageSize: config.posts.perPage });
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
 
-const locale = Astro.currentLocale ?? config.site.lang;
-const t = useTranslations(locale);
 ---
 
-<Layout title={`${t.pages.postsTitle} | ${config.site.title}`}>
+<Layout title={`工程笔记 | ${config.site.title}`}>
   <Header />
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.postsTitle} pageDesc={t.pages.postsDesc}>
+  <Main pageTitle="工程笔记" pageDesc="围绕具体问题，把设计选择、验证方法和开源阅读记录写清楚。">
+    <NoteSeriesIntro count={page.total} />
     <ul>
       {page.data.map(data => <Card {...data} />)}
     </ul>

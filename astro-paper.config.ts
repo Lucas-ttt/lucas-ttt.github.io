@@ -9,7 +9,7 @@ export default defineAstroPaperConfig({
     ogImage: "social-card.svg",
     lang: "zh-CN", timezone: "Asia/Shanghai", dir: "ltr",
   },
-  posts: { perPage: 8, perIndex: 3 },
+  posts: { perPage: 12, perIndex: 3 },
   features: { lightAndDarkMode: true, dynamicOgImage: false, showArchives: true, showBackButton: true, editPost: { enabled: false }, search: "pagefind" },
   socials: [{ name: "mail", url: "mailto:J1666830991@gmail.com" }],
   shareLinks: [],

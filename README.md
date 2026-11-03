@@ -7,6 +7,7 @@
 ## 日常编辑
 
 - 写文章：src/content/posts/，复制一篇Markdown并修改标题、摘要、日期和标签。
+- 系列文章：series 指定系列名，seriesOrder 指定阅读序号，noteType 区分实践记录、设计笔记、架构分析与开源研读；日期填写真实整理时间，更新时填写 modDatetime。
 - 修改项目名称、顺序与设计说明：src/data/projects.ts。当前归因分析第一、企业知识库第二。
 - 修改亮点：每个项目的 highlights；修改案例：cases。案例包含用户问题、风险、设计选择、验证项和材料说明，会同步出现在首页与项目页。
 - 修改首页：src/pages/index.astro。
@@ -15,6 +16,8 @@
 - 简历页面：src/pages/resume.astro；下载附件：public/downloads/。
 
 文章中的“## 目录”会根据后面的标题生成可折叠目录。draft: true 为草稿，发布时改为 false。
+
+工程笔记目前为10篇“可靠 AI 应用工程”系列，文章页按seriesOrder展示，首页精选由featured控制；原始日期仍用于归档和订阅。参考中英文开源材料时保留原始链接，用自己的分析与例子组织内容。
 
 项目采用案例形式呈现业务问题、架构、可靠性设计与验证方法；参考架构、方案和实际实现范围分别说明。
 

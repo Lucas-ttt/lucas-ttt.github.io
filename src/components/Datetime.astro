@@ -16,6 +16,7 @@ type Props = {
   pubDatetime: string | Date;
   timezone?: string;
   modDatetime?: string | Date | null;
+  noteType?: string;
 };
 
 const {
@@ -24,6 +25,7 @@ const {
   size = "sm",
   class: className = "",
   timezone: postTimezone,
+  noteType,
 } = Astro.props;
 
 const t = useTranslations(Astro.currentLocale);
@@ -34,7 +36,7 @@ const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
   resolveTimezone(postTimezone ?? config.site.timezone)
 );
 
-const date = datetime.format("D MMM, YYYY");
+const date = datetime.format("YYYY.MM.DD");
 ---
 
 <div
@@ -47,9 +49,9 @@ const date = datetime.format("D MMM, YYYY");
     ]}
   />
   {
-    isModified && (
+    (isModified || noteType) && (
       <span class:list={["text-sm", { "sm:text-base": size === "lg" }]}>
-        {t.post.updatedAt}:
+        {isModified ? t.post.updatedAt : "整理于"}:
       </span>
     )
   }

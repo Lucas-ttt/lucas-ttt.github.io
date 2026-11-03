@@ -2,8 +2,11 @@
 title: 从文档读取到可追溯切片：知识库原型记录
 description: 从已经运行的文档读取与分段脚本出发，明确来源标识、业务条件与后续验收方式。
 pubDatetime: 2026-11-03T10:00:00+08:00
-featured: true
+featured: false
 draft: false
+series: 可靠 AI 应用工程
+seriesOrder: 1
+noteType: 实践记录
 tags:
   - rag
   - python

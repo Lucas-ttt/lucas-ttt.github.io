@@ -4,6 +4,9 @@ description: 用产品版本冲突案例拆解检索约束、引用支持关系�
 pubDatetime: 2026-11-03T10:00:00+08:00
 featured: true
 draft: false
+series: 可靠 AI 应用工程
+seriesOrder: 4
+noteType: 设计笔记
 tags:
   - rag
   - 可靠性

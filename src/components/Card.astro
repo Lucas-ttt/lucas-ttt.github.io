@@ -13,7 +13,8 @@ const { variant: Heading = "h2", id, data, filePath } = Astro.props;
 const { title, description, ...props } = data;
 ---
 
-<li class="my-6">
+<li class="my-8 border-b border-border pb-7" data-series-order={data.seriesOrder}>
+  {data.series && <div class="mb-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground"><a href="/posts/#series" class="text-accent">{data.series} · {String(data.seriesOrder).padStart(2, "0")}</a><span>{data.noteType}</span></div>}
   <a
     href={getPostUrl(id, filePath, Astro.currentLocale)}
     class:list={[
