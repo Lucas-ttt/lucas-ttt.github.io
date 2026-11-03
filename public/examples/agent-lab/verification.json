@@ -1,0 +1,78 @@
+{
+  "verifiedDate": "2026-11-03",
+  "python": "3.12.14",
+  "packages": {
+    "mcp": "1.30.0",
+    "langgraph": "1.2.19",
+    "langchain-core": "1.7.4"
+  },
+  "externalModelVerified": false,
+  "scope": "本地演示资料、固定决策回放、故障注入与真实本地MCP stdio调用；不是生产系统或用户独立掌握的证明。",
+  "runs": [
+    {
+      "command": "python knowledge_tool.py",
+      "exitCode": 0,
+      "stdout": "v2 ['csv-v2']\nv1 ['csv-v1']\nv9 []"
+    },
+    {
+      "command": "python chunk_context.py",
+      "exitCode": 0,
+      "stdout": "v2 0:18 'CSV 导入说明。先确认产品是 v2'\nv2 18:36 '；E102 要检查 customer'\nv2 36:54 '_id。文件使用 UTF-8 编码。'\n拼回一致: True\n每段不超预算: True\n完整字段命中: False"
+    },
+    {
+      "command": "python retrieval_demo.py",
+      "exitCode": 0,
+      "stdout": "未限定版本: ['csv-v1', 'csv-v2']\n限定 v2: ['csv-v2']\n限定 v1: ['csv-v1']\n编码错误: ['encoding-v2']\n未知版本: []\n空版本: version 必须是非空字符串\n错误 top_k: top_k 必须是 1 到 5 的整数"
+    },
+    {
+      "command": "python citation_checks.py",
+      "exitCode": 0,
+      "stdout": "正常引用: 通过\n旧版 ID: ['不属于本次检索: csv-v1']\n未知 ID: ['不属于本次检索: made-up']\n混入旧证据: ['版本不符: csv-v1']\n没有引用: ['缺少引用']\n错误建议的 ID 检查: 通过\n仍需核查: 请在 CSV 表头添加 user_id ；v2 原文要求 customer_id"
+    },
+    {
+      "command": "python eval_tools.py",
+      "exitCode": 0,
+      "stdout": "PASS v1 的 E102: ['csv-v1']\nPASS v2 的 E102: ['csv-v2']\nPASS v2 的 E201: ['encoding-v2']\nPASS 未知版本: []\nPASS 空问题: ValueError: query 必须是非空字符串\nPASS 空版本: ValueError: version 必须是非空字符串\nPASS 零条候选: ValueError: top_k 必须是 1 到 5 的整数\nPASS 文本数量: ValueError: top_k 必须是 1 到 5 的整数\n工具回归通过: 8/8"
+    },
+    {
+      "command": "python sql_readonly.py",
+      "exitCode": 0,
+      "stdout": "推荐 150.00 元\n搜索 200.00 元\n合计 350.00 元\n修正后复验 35000 分\n写入请求被拒绝"
+    },
+    {
+      "command": "python session_memory.py",
+      "exitCode": 0,
+      "stdout": "{\"session\": \"A\", \"chars\": 25, \"turns\": [{\"question\": \"改成 v2\", \"answer\": \"使用 v2 资料\"}, {\"question\": \"仍报 E102\", \"answer\": \"核对必填列\"}]}\n{\"session\": \"B\", \"chars\": 8, \"turns\": [{\"question\": \"查询退款\", \"answer\": \"请给日期\"}]}\nbudget_error: 最新一轮超过历史字符预算"
+    },
+    {
+      "command": "python langgraph_agent.py",
+      "exitCode": 0,
+      "stdout": "节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n结果 CSV 导入缺少 customer_id 列，检查首行表头。 [来源 csv-v2]"
+    },
+    {
+      "command": "python retry_fallback.py",
+      "exitCode": 0,
+      "stdout": "flaky {\"status\": \"ok\", \"attempts\": 2, \"answer\": \"v2 请核对 customer_id 列\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"\"}\ntimeout {\"status\": \"source_only\", \"attempts\": 2, \"answer\": \"\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"TimeoutError\"}\ninvalid {\"status\": \"invalid\", \"attempts\": 1, \"answer\": \"\", \"sources\": [], \"reason\": \"ValueError\"}\ndeadline {\"status\": \"source_only\", \"attempts\": 1, \"answer\": \"\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"total_timeout\"}"
+    },
+    {
+      "command": "python mcp_client.py",
+      "exitCode": 0,
+      "stdout": "发现工具 ['lookup_support']\n调用错误 False\n结构化结果 {\"result\": [{\"id\": \"csv-v2\", \"version\": \"v2\", \"error_code\": \"E102\", \"text\": \"CSV 导入缺少 customer_id 列，检查首行表头。\", \"source\": \"demo/csv-v2.md\"}]}"
+    },
+    {
+      "command": "python langgraph_agent.py --repeat",
+      "exitCode": 0,
+      "stdout": "节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n节点 tools 消息 tool\n达到图执行上限：6 步"
+    },
+    {
+      "command": "python mcp_client.py --version v9",
+      "exitCode": 0,
+      "stdout": "发现工具 ['lookup_support']\n调用错误 False\n结构化结果 {\"result\": []}"
+    },
+    {
+      "command": "python mcp_client.py --bad-input",
+      "exitCode": 0,
+      "stdout": "发现工具 ['lookup_support']\n调用错误 True\n结构化结果 null"
+    }
+  ]
+}

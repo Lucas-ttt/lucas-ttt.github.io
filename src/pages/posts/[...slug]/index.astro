@@ -140,6 +140,8 @@ const ogImage = ogImageUrl
       <EditPost {hideEditPost} {post} class="max-sm:hidden" />
     </div>
 
+    {noteType === "代码实操" && <div class="mt-5 flex flex-wrap gap-4 rounded-md border border-border bg-muted p-4 text-sm" data-pagefind-ignore><a class="text-accent underline underline-offset-4" href="/examples/agent-lab.zip" download>下载完整 Python 示例 ↓</a><a class="text-accent underline underline-offset-4" href="/examples/agent-lab/README.md">环境、命令与验证记录 ↗</a></div>}
+
     <article
       id="article"
       class:list={[
@@ -224,7 +226,7 @@ const ogImage = ogImageUrl
   addHeadingLinks();
 
   function attachCopyButtons() {
-    const copyButtonLabel = "Copy";
+    const copyButtonLabel = "复制代码";
     const codeBlocks = Array.from(document.querySelectorAll("pre"));
 
     for (const codeBlock of codeBlocks) {
@@ -259,7 +261,7 @@ const ogImage = ogImageUrl
 
       await navigator.clipboard.writeText(text ?? "");
 
-      button.innerText = "Copied";
+      button.innerText = "已复制";
 
       setTimeout(() => {
         button.innerText = copyButtonLabel;

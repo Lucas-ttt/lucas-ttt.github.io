@@ -1,6 +1,6 @@
 ---
-title: 聊天记录越多越好吗：上下文预算与会话隔离
-description: 从产品版本切换的假设场景出发，讨论线程状态、输入预算、历史裁剪与摘要失真的取舍，并给出核查清单。
+title: Agent 会话记忆实操：SQLite 隔离与历史字符预算
+description: 用一份可独立运行的 Python 脚本保存问答轮次，演示两个会话隔离、25 字符历史裁剪和过小预算错误。
 pubDatetime: 2026-11-03T10:00:00+08:00
 archiveDatetime: 2026-03-07T12:00:00+08:00
 featured: true
@@ -8,60 +8,125 @@ draft: false
 tags:
   - 上下文管理
   - memory
-  - langgraph
-series: 可靠 AI 应用工程
+  - sqlite
+series: AI Agent 代码实操
 seriesOrder: 7
-noteType: 开源研读
+noteType: 代码实操
 ---
 
-用户说“刚才那个办法还是不行”，系统需要理解“那个办法”；用户改问另一个版本时，旧条件又可能成为干扰。本文基于 LangGraph 与 LangChain 英文官方文档，用自编技术支持场景讨论设计取舍，不代表这些记忆机制已经在个人项目中实现。
+Agent 连续收到两条消息：“我用的是 v1”和“现在改成 v2”。同一时间，另一个用户正在查询退款。如果只是把所有消息塞进一个全局列表，两个问题会一起进入模型输入。这篇先完成一个可以直接运行的记忆选择器：SQLite 保存问答轮次，按会话查询，再为近期历史设置字符预算。
+
+演示数据是自编的支持对话，不访问真实用户数据，也不请求模型。重点是亲眼看到数据库取出了哪些轮次，哪些内容被丢弃，而不是先讨论复杂的长期记忆框架。
 
 ## 目录
 
-## 场景：旧版本条件怎样污染新问题
+## 先看输入与目标
 
-假设用户先问产品 v1 的 CSV 导入，随后明确切换到 v2，并追问同一个错误码。若程序每轮直接拼接全部历史，旧版字段名和处理步骤仍占据大量上下文。模型即使读到了新版本，也可能沿用前面的建议。
+| 会话 | 按时间写入的内容 | 本次希望检查什么 |
+| --- | --- | --- |
+| A | 使用 v1 → 改成 v2 → 仍报 E102 | 保留近期追问，观察旧版本轮次是否被裁掉 |
+| B | 查询退款 → 请给日期 | B 的内容不能出现在 A 的查询结果中 |
 
-设计需要同时保留连续性和处理条件变化：将当前产品、版本、错误码作为结构化任务事实；明确切换版本时更新事实，并重新检查旧证据是否适用。未确认的信息保留为待澄清项，不把模型上一轮推测升级成确定事实。
+一问一答作为一条记录，避免裁剪后只留下半轮答案。这里的预算是 `len(question) + len(answer)`，单位为 Python 字符；没有计算角色标签、系统指令、当前问题或模型 Token，不能拿它当模型的完整输入上限。
 
-## 先区分会话状态与长期记忆
+## 运行环境与完整代码
 
-LangGraph 将短期记忆组织在线程状态中，跨会话信息则可采用另行划分的长期存储。这提供了一个有用的边界：当前排障上下文不必自动成为所有会话共享的用户事实。[官方记忆概览](https://docs.langchain.com/oss/python/concepts/memory)
+环境：Python 3.12，Windows PowerShell 或 WSL/Linux 终端，`python` 已指向该版本。只使用标准库，数据库创建在独立临时目录中，运行完关闭并清理。下载文件后进入所在目录执行：
 
-在这个方案中，两名用户的状态、同一用户的不同排障会话分别组织。会话 ID 用于定位记录，读取时还需由应用检查归属；模型提供的用户标识不能成为授权依据。持久化恢复也应使用同样边界，不能重启后恢复到了别人的历史。
+```bash
+python --version  # 确认当前解释器是 Python 3.12。
+python session_memory.py  # 运行会话隔离与字符预算演示。
+```
 
-## 预算要分配给哪些内容
+[下载完整的 session_memory.py](/examples/agent-lab/session_memory.py)
 
-预算不仅包含聊天记录，还要考虑系统说明、工具定义、本轮检索证据和输出空间。先固定当前问题与必要约束，再按相关性组织近期消息、证据和历史摘要；超预算时，应知道具体删去了什么。
+```python
+import json  # 用结构化输出观察会话内容。
+import sqlite3  # 使用 Python 标准库中的 SQLite 接口。
+from pathlib import Path  # 构造临时数据库路径。
+from tempfile import TemporaryDirectory  # 演示结束后自动清理临时目录。
 
-| 内容 | 本场景的处理选择 |
-| --- | --- |
-| 当前问题、已确认版本 | 优先保留，条件变化时显式更新 |
-| 原始日志与长工具结果 | 保存可回查位置，只注入相关片段 |
-| 最近的澄清与执行结果 | 保留完整关联，避免答案失去前提 |
-| 较早的重复讨论 | 裁剪或摘要，不反复整段注入 |
+def add_turn(conn, session_id, question, answer):  # 将一问一答作为完整轮次保存。
+    with conn:  # 正常退出时提交，发生异常时回滚本次写入。
+        conn.execute(  # 使用参数占位符绑定内容，不拼接 SQL 字符串。
+            "INSERT INTO turns(session_id, question, answer) VALUES (?, ?, ?)",  # 固定写入语句。
+            (session_id, question, answer),  # 会话标识与文本分别作为参数。
+        )  # 完成本轮写入。
 
-计量应适配实际模型，字符数只能作为粗略估计。记录输入规模和被省略内容，才能解释某个条件为何在长对话中丢失，而不是只说“模型忘了”。
+def recent_turns(conn, session_id, char_budget):  # 按字符预算选择最近的完整轮次。
+    if char_budget < 1:  # 拒绝无意义的预算配置。
+        raise ValueError("char_budget 必须大于 0")  # 明确返回配置错误。
+    rows = conn.execute(  # 限制读取数量，避免一次加载全部历史。
+        "SELECT question, answer FROM turns WHERE session_id = ? ORDER BY id DESC LIMIT 20",  # 先按会话过滤，再倒序读取。
+        (session_id,),  # 单参数也使用元组绑定。
+    ).fetchall()  # 示例最多取得最近二十轮。
+    selected, used = [], 0  # 初始化保留轮次和已用字符数。
+    for question, answer in rows:  # 从最新一轮向较旧轮次检查。
+        size = len(question) + len(answer)  # 只计算正文字符，不将其声称为 Token 数。
+        if not selected and size > char_budget:  # 最新一轮也装不下时，不截断半段操作建议。
+            raise ValueError("最新一轮超过历史字符预算")  # 交由上层选择摘要或调整预算。
+        if used + size > char_budget:  # 继续添加将超过预算。
+            break  # 保留连续的近期轮次，不跳过中间轮次寻找更短消息。
+        selected.append({"question": question, "answer": answer})  # 整轮加入上下文候选。
+        used += size  # 累计已使用的正文字符。
+    return list(reversed(selected)), used  # 恢复由旧到新的对话顺序。
 
-## 裁剪和摘要各有代价
+def main():  # 运行两个会话的隔离与裁剪演示。
+    with TemporaryDirectory(prefix="agent-memory-") as folder:  # 仅使用独立临时目录。
+        conn = sqlite3.connect(Path(folder) / "memory.db")  # 创建演示数据库，不接触用户已有数据。
+        try:  # 无论演示成功与否都关闭连接。
+            conn.execute("CREATE TABLE turns(id INTEGER PRIMARY KEY, session_id TEXT, question TEXT, answer TEXT)")  # 为轮次建立递增编号。
+            add_turn(conn, "A", "使用 v1", "先查 v1")  # A 会话最早的旧版本条件。
+            add_turn(conn, "A", "改成 v2", "使用 v2 资料")  # A 会话明确切换到新版本。
+            add_turn(conn, "A", "仍报 E102", "核对必填列")  # A 会话继续追问。
+            add_turn(conn, "B", "查询退款", "请给日期")  # B 会话属于另一项任务。
+            for session_id in ("A", "B"):  # 分别按会话标识读取。
+                turns, used = recent_turns(conn, session_id, 25)  # 为演示历史分配二十五个正文字符。
+                print(json.dumps({"session": session_id, "chars": used, "turns": turns}, ensure_ascii=False))  # 展示选中轮次。
+            try:  # 额外验证最新一轮装不下的错误分支。
+                recent_turns(conn, "A", 1)  # 故意给出过小预算。
+            except ValueError as error:  # 捕获预期的配置或预算错误。
+                print("budget_error:", error)  # 展示明确失败，避免静默截断。
+        finally:  # 连接必须在临时目录清理前释放。
+            conn.close()  # Windows 上也能正常删除已关闭的数据库文件。
 
-LangChain 文档列出裁剪、删除和摘要等短期记忆管理方式。裁剪便于控制范围，摘要则尝试用更短文本保留历史信息；两者都需要检查信息损失。[官方短期记忆说明](https://docs.langchain.com/oss/python/langchain/short-term-memory)
+if __name__ == "__main__":  # 直接执行脚本时才运行演示。
+    main()  # 入口函数不访问外网，也不调用真实模型。
+```
 
-这个案例可以先采用有限近期历史，再将早期内容整理为“已确认条件、尝试过的步骤、对应结果、未解决问题”。摘要保留原始消息或证据标识，便于回查。用户切换版本时，旧摘要应被标注失效或重新整理，不能只追加一句新版本后继续复用。
+## 实际输出怎样读
 
-摘要自身也是生成结果，可能漏掉否定条件，或把“暂时怀疑编码问题”写成“已确认编码错误”。因此当前事实与历史推测分别保存，冲突时重新澄清；不把摘要当作原文证据。
+以下输出已在 Python 3.12.14 本地运行核对：
 
-## 怎样核查这个方案
+```text
+{"session": "A", "chars": 25, "turns": [{"question": "改成 v2", "answer": "使用 v2 资料"}, {"question": "仍报 E102", "answer": "核对必填列"}]}
+{"session": "B", "chars": 8, "turns": [{"question": "查询退款", "answer": "请给日期"}]}
+budget_error: 最新一轮超过历史字符预算
+```
 
-- **连续追问：** 省略产品名称后，仍能找到上一轮已确认的版本和问题。
-- **条件切换：** 从 v1 切到 v2，答案与引用均检查新版本，旧建议不被无条件继承。
-- **会话隔离：** 两个会话交替请求，历史、文件和摘要不交叉；非法会话访问被应用拒绝。
-- **预算边界：** 加长日志后记录裁剪位置，核查关键条件、必要证据与输出空间是否仍被保留。
-- **摘要复核：** 对照原始消息检查否定词、尝试结果和未知项；恢复会话后再次核查。
+第一行保留 A 的最近两轮，合计二十五个正文字符；最早的 v1 轮次没有进入结果。第二行只出现 B 的退款对话。第三行来自故意设置为一字符的预算，程序明确拒绝，不截断半句话后继续生成。
 
-验证记录应包含固定对话、状态快照、上下文组成与实际回答。先完成可解释的小方案，再根据失败决定是否需要复杂的长期记忆检索；“记住更多”本身不是质量指标。
+## 代码里的三个决定
 
-## 研读来源
+数据库查询先执行 `WHERE session_id = ?`，再倒序取最多二十轮。参数通过占位符绑定；会话内容不会被拼进 SQL。`session_id` 在这个独立演示中是固定字符串，接入登录系统时应由可信的应用上下文绑定，而不是让模型任意选择其他会话。
 
-- [LangGraph / LangChain：Memory overview](https://docs.langchain.com/oss/python/concepts/memory)：线程范围状态与跨线程长期存储的区别。
-- [LangChain：Short-term memory](https://docs.langchain.com/oss/python/langchain/short-term-memory)：裁剪、删除、摘要及短期状态管理。
+倒序扫描可以先保住最近轮次，返回前再恢复正序。装不下下一条时直接停止，不跳过中间轮次去挑更短的旧消息。这样更容易解释“哪些连续历史进入了本次输入”。
+
+数据库存储与模型输入是两件事：本例只裁剪读取结果，没有删除旧记录。真实系统的保存期限、用户删除和重启恢复需要另外设计；临时数据库也不提供跨进程持久化。
+
+## 自己修改一次，观察结果
+
+把主循环的二十五改成三十五，A 的最早 v1 轮次也会回来。这能直接说明：历史更多，不等于当前版本条件更准确。产品版本等关键状态如果必须保留，应单独记录并显式更新，不能只依赖它恰好留在近期历史里。
+
+再给 B 增加一轮问答，确认 A 的输出不变。最后保留一字符预算的错误检查，核对上层收到的是明确错误，而不是一个看似完整但信息被截断的上下文。
+
+这段代码只选择用户问答轮次。接入带工具调用的消息协议时，还应检查工具请求与返回的配对，不能直接把任意协议消息当成普通问答裁剪。
+
+## 资料入口
+
+- [Python 3.12：sqlite3](https://docs.python.org/3.12/library/sqlite3.html)：参数绑定、连接和事务上下文的官方说明。
+- [Python 3.12：tempfile](https://docs.python.org/3.12/library/tempfile.html#tempfile.TemporaryDirectory)：独立临时目录及清理行为。
+
+## 中文实战阅读
+
+[张高兴：使用LangGraph为对话添加历史记录，博客园](https://www.cnblogs.com/zhanggaoxing/p/18791377)展示了thread_id与存储的连接方式。本篇的SQLite脚本用于先观察会话隔离和历史选择，接入框架检查点时仍需保留相同的隔离测试。

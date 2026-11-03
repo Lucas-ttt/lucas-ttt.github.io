@@ -4,10 +4,11 @@ const { count } = Astro.props;
 ---
 <section id="series" class="series-intro" aria-labelledby="series-title">
   <p class="eyebrow">ENGINEERING NOTEBOOK / {count} NOTES</p>
-  <h2 id="series-title">可靠 AI 应用工程</h2>
-  <p class="intro-copy">从文档与检索，到答案核查和执行控制。结合具体场景，记录代码实践、系统设计与中英文开源资料研读。</p>
-  <div class="reading-path"><span>01—03 文档与检索</span><i aria-hidden="true">→</i><span>04—06 答案与数据核查</span><i aria-hidden="true">→</i><span>07—10 执行与运行控制</span></div>
-  <p class="date-note">按系列顺序阅读 · 自定义归档日期用于编排，整理时间见正文 · 开源研读文章附原始资料入口</p>
+  <h2 id="series-title">AI Agent 代码实操</h2>
+  <p class="intro-copy">从可调用的检索工具，到 LangGraph 执行闭环与 MCP 双端连接。结合牛客、博客园的中文原文，用完整代码、实际输出和改错实验展开。</p>
+  <div class="reading-path"><span>01—03 工具与数据</span><i aria-hidden="true">→</i><span>04—06 校验与查询</span><i aria-hidden="true">→</i><span>07—10 状态与协议</span></div>
+  <div class="reading-path"><a href="/examples/agent-lab.zip" download>下载完整 Python 示例 ↓</a><a href="/examples/agent-lab/README.md">环境与运行说明 ↗</a></div>
+  <p class="date-note">按系列顺序阅读 · 自定义归档日期用于编排，整理时间见正文 · 文章保留原文作者与来源</p>
 </section>
 <style>
   .series-intro { border: 1px solid var(--border); border-radius: 0.6rem; background: var(--muted); padding: 1.6rem 1.8rem; margin: 1.5rem 0 2.2rem; scroll-margin-top: 2rem; }
@@ -17,6 +18,7 @@ const { count } = Astro.props;
   .reading-path { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem 0.8rem; margin-top: 1.4rem; font-size: 0.7rem; }
   .reading-path span { padding: 0.3rem 0.55rem; border: 1px solid var(--border); border-radius: 0.3rem; background: var(--background); }
   .reading-path i { color: var(--accent); font-style: normal; }
+  .reading-path a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; margin-right: 1rem; }
   .date-note { color: var(--muted-foreground); font-size: 0.65rem; margin: 1rem 0 0; line-height: 1.9; }
   @media (max-width: 600px) { .series-intro { padding: 1.25rem; } h2 { font-size: 1.2rem; } .reading-path { flex-direction: column; align-items: flex-start; gap: 0.35rem; } .reading-path i { padding-left: 0.8rem; transform: rotate(90deg); } }
 </style>

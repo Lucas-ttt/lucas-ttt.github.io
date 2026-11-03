@@ -1,60 +1,102 @@
 ---
-title: 切分文档时，怎样把业务条件一起留下
-description: 从标题、版本和操作前提出发，分析切分边界、字符与 token、重叠片段及参数对照的方法。
+title: 18 个字符怎样切坏 customer_id：可运行的切片排错例子
+description: 运行一个保留标题、版本和来源的字符切片脚本，观察字段被拆开的真实输出，并用原文还原与预算检查区分不同质量目标。
 pubDatetime: 2026-11-03T10:00:00+08:00
 archiveDatetime: 2026-07-30T12:00:00+08:00
 featured: false
 draft: false
-series: 可靠 AI 应用工程
+series: AI Agent 代码实操
 seriesOrder: 2
-noteType: 开源研读
+noteType: 代码实操
 tags:
   - rag
   - 文档处理
   - 开源研读
 ---
 
-文档被成功拆成片段，只能说明处理流程产生了输出。真正需要检查的是：一段被单独召回后，是否还能说明适用对象、前提和操作步骤。本文结合 LangChain 英文文档与源码，围绕技术支持资料设计切分与核查方法。
+给每个片段补上版本和来源，检索就不会漏资料了吗？先运行一个很小的反例：正文只有 54 个字符，切分预算设为 18，最终每段都没有超限，也能准确拼回原文，但 `customer_id` 还是被切成了两半。
+
+这篇把切分阶段单独拿出来排错，不接模型，也不安装文本切分框架。目的不是推荐 18 作为真实项目参数，而是让字符边界、来源位置和业务字段的关系直接出现在输出里。
 
 ## 目录
 
-## 场景：处理步骤找到了，适用条件却丢了
+## 输入与预期检查
 
-设想一份演示手册：章节标题写着“v2 批量导入”，第一段说明文件编码与必填列，下一段给出失败处理步骤。如果按固定长度截断，条件与步骤可能分属两个片段。检索只找到后半段，回答就难以判断它适用于哪个版本。
+自编文档说明 v2 的 E102 错误，正文中包含 `customer_id` 和 UTF-8。每段携带标题、版本、来源、字符起止位置和正文。标题等元数据单独存放，没有偷偷拼进 18 字符的正文额度；以后组装模型输入时，仍需另算这些内容的实际 token 开销。
 
-这个场景需要保存的不只是正文，还包括文档标识、章节路径、版本、片段位置与来源。版本明确时可以约束检索；版本未知时，回答应呈现依据的适用范围。给片段补上标题，有助于理解上下文，却不能替代对正文证据的核查。
+位置采用左闭右开区间。例如 `18:36` 对应 Python 的 `text[18:36]`，便于重新打开原文核对。脚本不删除空白、不插入重叠文本，因此可以用直接拼接检查有没有漏字符或重复字符。
 
-## 先观察结构，再设长度上限
+## 完整代码
 
-[LangChain 的切分文档](https://docs.langchain.com/oss/python/integrations/splitters/index)区分长度与结构等策略，递归切分会尝试保留较大的自然文本单元；[Markdown 标题切分说明](https://docs.langchain.com/oss/python/integrations/splitters/markdown_header_metadata_splitter)则展示了标题与元数据的关系。
+执行环境：Python 3.10 及以上，仅用标准语法。保存为 `chunk_context.py`，或直接[下载脚本](/examples/agent-lab/chunk_context.py)。
 
-应用到导入手册，可以先按章节组织内容，再对过长章节继续切分。这样设计的目标是让“版本—错误说明—处理步骤”尽量保持关联，仍需检查表格、短标题和连续列表等边界。标题切分器能够识别结构，不会自动理解哪些条件在业务上必须一起出现。
+```python
+def chunk_document(text: str, title: str, version: str, source: str, max_chars: int = 18) -> list[dict]:  # 按字符预算切分，并保留业务条件。
+    if not isinstance(text, str) or not text:  # 拒绝空内容，避免生成没有证据的片段。
+        raise ValueError("text 必须是非空字符串")  # 让调用方修正输入。
+    metadata = {"title": title, "version": version, "source": source}  # 元数据不混入正文的字符预算。
+    if any(not isinstance(value, str) or not value.strip() for value in metadata.values()):  # 检查标题、版本与来源。
+        raise ValueError("title、version、source 必须是非空字符串")  # 不默默遗漏适用条件。
+    if type(max_chars) is not int or max_chars < 1:  # 布尔值不作为有效字符预算。
+        raise ValueError("max_chars 必须是正整数")  # 非正预算无法推进切分位置。
+    chunks = []  # 按原文顺序收集片段。
+    for start in range(0, len(text), max_chars):  # 每次移动固定数量的字符。
+        end = min(start + max_chars, len(text))  # 最后一个片段可以短于预算。
+        chunks.append({  # 一个片段既保存内容，也保存回查位置。
+            "id": f"{source}#{len(chunks) + 1:03d}",  # 演示标识只在当前切分配置下有意义。
+            **metadata,  # 每一段都携带相同的标题、版本与来源。
+            "char_start": start, "char_end": end,  # 使用左闭右开的字符区间。
+            "text": text[start:end],  # 不清理空白，保证可以准确拼回原文。
+        })  # 完成当前片段。
+    restored = "".join(chunk["text"] for chunk in chunks)  # 按生成顺序还原正文。
+    if restored != text:  # 核查切分过程中是否丢失或重复字符。
+        raise RuntimeError("切分结果不能还原原文")  # 这是切分错误，不应交给模型猜测修补。
+    return chunks  # 返回可被检索或引用环节消费的片段列表。
 
-同一段落里还可能混合多个版本。此时仅继承章节标题会把条件标错，应先核对原文，再决定拆成不同文档、不同片段，还是保留冲突说明。元数据是需要维护的数据，不能只在入库时填一个标签就认为可靠。
+if __name__ == "__main__":  # 直接运行，查看实际的切分边界。
+    text = "CSV 导入说明。先确认产品是 v2；E102 要检查 customer_id。文件使用 UTF-8 编码。"  # 自编演示原文。
+    chunks = chunk_document(text, "CSV 导入", "v2", "demo/csv-v2.md")  # 使用默认的十八字符预算。
+    for item in chunks:  # 逐段打印版本、位置与文本。
+        print(item["version"], f"{item['char_start']}:{item['char_end']}", repr(item["text"]))  # repr 保留可观察的空白。
+    print("拼回一致:", "".join(item["text"] for item in chunks) == text)  # 展示实际还原检查结果。
+    print("每段不超预算:", all(len(item["text"]) <= 18 for item in chunks))  # 十八指字符数，不是 token 数。
+    print("完整字段命中:", any("customer_id" in item["text"] for item in chunks))  # 演示硬切分把字段拆开的实际问题。
+```
 
-## 字符长度和模型预算分别检查
+## 运行与实际输出
 
-字符计数与 token 计数采用不同单位，不能把“若干字符”直接当成同等数量的 token。选择长度函数时，要说明它对应什么计量方式；把证据送入模型时，还要给指令、问题、必要历史和输出留出空间。
+在脚本所在目录，用 Windows PowerShell 执行：
 
-片段较短，可能把操作前提拆散；片段较长，又可能携带无关步骤。重叠可以保留边界附近的内容，也会让相同文字出现在多个候选中。在这个场景里，需要同时观察证据完整性和重复内容占用，不能只看生成了多少个片段。
+```powershell
+python chunk_context.py # 打印每段的位置与正文，再检查还原、长度和字段完整性。
+```
 
-## 用同一组问题比较切分方案
+本次运行输出：
 
-先固定原始资料、Embedding、检索配置和问题，再比较一项变化，例如完整段落切分与带长度限制的结构切分。若同时更换模型、索引和 Top-K，就难以判断改动来自哪个环节。
+```text
+v2 0:18 'CSV 导入说明。先确认产品是 v2'
+v2 18:36 '；E102 要检查 customer'
+v2 36:54 '_id。文件使用 UTF-8 编码。'
+拼回一致: True
+每段不超预算: True
+完整字段命中: False
+```
 
-每个问题记录参考章节、实际片段、缺失条件和最终回答。相邻片段都命中，也要检查它们是否提供了不同信息；两个重复片段不能当成两份独立证据。修改后用留出问题检查，避免只围绕已经看过的失败样例调参。
+第二段以 `customer` 结束，第三段以 `_id` 开始。如果后续工具逐段检查是否包含完整字段名，就没有任何单段能够命中。先保留这份失败输入与输出，再讨论调整切分策略，排错会更直接。
 
-## 一份可以落地的核查清单
+## 三个检查分别说明什么
 
-- 片段能否回到确定版本的原文，位置是否仍与清洗后的内容对应？
-- 错误码、字段名、否定词和操作前提有没有在清洗或切分中丢失？
-- 同一问题是否召回了适用版本，引用是否支持具体建议？
-- 参数对比是否保留相同数据、模型与检索条件，失败原因能否重新检查？
+“拼回一致”检查字符没有丢失；“每段不超预算”检查当前计量方式下的长度；“完整字段命中”检查这个业务条件是否还在单段内。前两项通过不能推出第三项通过，更不能推出模型回答正确。
 
-这里整理的是方案与验证方法。具体长度、重叠和效果，应由实际资料与运行记录确定；没有一个数字可以替代对片段内容的检查。
+同样，Python 的 `len()` 计算字符串字符数量，不是字节数，也不是目标模型的 token 数。本例明确采用字符预算，避免把脚本中的 18 误读成模型输入限制。换成特定模型的输入预算时，需要使用对应计量并把标题、历史与工具描述一起计入。
 
-## 开源阅读入口
+## 怎样修改，而不是只换一个更大数字
 
-- [LangChain Text Splitters 仓库说明（英文）](https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/README.md)：包的职责与文档入口。
-- [Markdown 切分器源码（英文注释）](https://github.com/langchain-ai/langchain/blob/master/libs/text-splitters/langchain_text_splitters/markdown.py)：查看标题追踪、内容聚合与元数据处理。
+可以先把预算改为 24，保留同一份原文重新运行，观察字段是否完整、片段数量怎样变化。随后再比较按段落或句号切分、保护错误码与字段名等方案。一次只改一个规则，才能知道变化来自哪里；单个演示字段没有被拆开，不代表所有资料都适合这个参数。
 
+还可以把 `max_chars` 改为 0，观察程序是否在进入循环前拒绝输入；更换标题或版本后，检查每一段的元数据是否同步。本例的片段ID依赖当前来源与序号，重新切分后不应假定旧引用还能指向相同正文，实际入库还需要版本化和引用更新策略。
+
+## 中文原文与一手资料
+
+- [溯光独立开发：Langchain Splitter 源码阅读笔记（一）](https://www.cnblogs.com/nanimono/p/19248329)：原文逐段分析长度函数、分隔符、合并与元数据位置，适合在看过本例输出后继续阅读。本文没有复制其中框架源码。
+- [LangChain 官方 Text Splitter 文档](https://docs.langchain.com/oss/python/integrations/splitters/index)：比较字符、结构与语义等切分思路；参数是否合适仍需回到自己的文档与问题验证。

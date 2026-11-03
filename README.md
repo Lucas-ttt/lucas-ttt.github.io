@@ -7,7 +7,7 @@
 ## 日常编辑
 
 - 写文章：src/content/posts/，复制一篇Markdown并修改标题、摘要、日期和标签。
-- 系列文章：series 指定系列名，seriesOrder 指定阅读序号，noteType 区分实践记录、设计笔记、架构分析与开源研读；日期填写真实整理时间，更新时填写 modDatetime。
+- 系列文章：series 指定系列名，seriesOrder 指定阅读序号，noteType 可用代码实操、实践记录、设计笔记、架构分析与开源研读；日期填写真实整理时间，更新时填写 modDatetime。
 - 修改项目名称、顺序与设计说明：src/data/projects.ts。当前归因分析第一、企业知识库第二。
 - 修改亮点：每个项目的 highlights；修改案例：cases。案例包含用户问题、风险、设计选择、验证项和材料说明，会同步出现在首页与项目页。
 - 修改首页：src/pages/index.astro。
@@ -17,7 +17,9 @@
 
 文章中的“## 目录”会根据后面的标题生成可折叠目录。draft: true 为草稿，发布时改为 false。
 
-工程笔记目前为10篇“可靠 AI 应用工程”系列，文章页按seriesOrder展示，首页精选由featured控制；原始日期仍用于订阅和结构化元信息。参考中英文开源材料时保留原始链接，用自己的分析与例子组织内容。
+工程笔记目前为10篇“AI Agent 代码实操”，每篇包含完整Python代码、执行命令、实际输出、改错实验及原文入口。文章页按seriesOrder展示，首页精选由featured控制；原始日期仍用于订阅和结构化元信息。中文阅读入口涵盖牛客、博客园，示例为独立编写的演练，不收录未授权博客全文。
+
+下载包在public/examples/agent-lab.zip，源文件及运行记录在public/examples/agent-lab/。修改脚本时需要同步文章代码块，并实际重跑后更新verification.json和verified-output.txt；不能只改显示输出。标准库示例、LangGraph和MCP已执行验证，真实外部模型--live模式需使用自己的服务配置另行验证。
 
 archiveDatetime 是自定义归档日期，用于文章列表及归档页编排。pubDatetime 和 modDatetime 保留实际发布/整理与更新记录，供正文、订阅和结构化信息使用。自定义日期不代表文章当时已经发表。
 

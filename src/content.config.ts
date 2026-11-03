@@ -23,7 +23,7 @@ const posts = defineCollection({
       hideEditPost: z.boolean().optional(),
       series: z.string().optional(),
       seriesOrder: z.number().int().positive().optional(),
-      noteType: z.enum(["实践记录", "设计笔记", "开源研读", "架构分析"]).optional(),
+      noteType: z.enum(["实践记录", "设计笔记", "开源研读", "架构分析", "代码实操"]).optional(),
       // An empty value means "not set", so the site timezone applies.
       timezone: z
         .string()

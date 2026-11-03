@@ -1,6 +1,6 @@
 ---
-title: 模型超时后怎么办：重试预算与原文降级
-description: 从知识问答的超时场景出发，区分可重试错误、结果未知、总等待预算与原文降级，设计可核查的失败路径。
+title: 给 Agent 调用加超时：有限重试、总预算与原文降级
+description: 用四种可重复故障注入，运行并观察连接恢复、重试耗尽、参数错误和整体预算终止；附完整 Python 代码与输出。
 pubDatetime: 2026-11-03T10:00:00+08:00
 archiveDatetime: 2026-01-13T12:00:00+08:00
 featured: false
@@ -9,68 +9,116 @@ tags:
   - 可靠性
   - 重试
   - rag
-series: 可靠 AI 应用工程
+series: AI Agent 代码实操
 seriesOrder: 9
-noteType: 开源研读
+noteType: 代码实操
 ---
 
-用户查询产品 v2 的 CSV 导入错误，检索已经找到对应手册，模型却迟迟没有完成回答。界面应该继续等待、重新请求，还是展示原文？本文结合 Tenacity 与 urllib3 的官方资料设计这条失败路径。场景为自编推演，尚未形成项目中的故障实测或线上稳定性结论。
+知识库已经检索到 v2 手册，生成回答却超时了。把所有错误都重试三次，会让错误参数也重复执行；一超时就返回“没有资料”，又会混淆模型故障与知识缺失。下面用四个可重复的故障实验，把这些分支写成能观察的代码。
+
+`fake_model` 是故障替身，不是实际 LLM。它通过一次连接异常、异步慢响应和参数错误触发控制逻辑；本篇记录本地故障注入，不将它写成线上事故或真实模型性能结果。
 
 ## 目录
 
-## 先判断失败发生在哪一层
+## 四种情况分别怎样结束
 
-“请求失败”包含不同含义。资料没有覆盖问题，说明缺少业务依据；检索连接失败，说明暂时没有拿到检索结果；生成超时，则可能已经有依据，只是回答没有完成。若都返回“知识库没有答案”，使用者会补错材料，维护者也难以定位。
+| 场景 | 注入方式 | 应看到的结果 |
+| --- | --- | --- |
+| flaky | 第一次连接失败，第二次成功 | 尝试两次后返回答案 |
+| timeout | 每次响应都慢于单次等待上限 | 用尽两次尝试后只展示原文 |
+| invalid | 请求参数不合法 | 第一次就结束，不重试 |
+| deadline | 整体预算先耗尽 | 即使还有次数，也停止等待 |
 
-我为这个场景设计如下分类，具体状态还应结合服务商返回约定处理：
+`MAX_ATTEMPTS = 2` 表示总尝试次数，包含第一次调用。单次十毫秒、整体三毫秒等数值仅用于快速触发演示分支，不是生产超时配置建议。接入真实服务后，阈值要根据可接受等待时间与实际响应记录调整。
 
-| 现象 | 处理原则 |
-| --- | --- |
-| 参数错误、认证失败 | 返回可辨认错误，修正输入或配置，不反复发送同一请求 |
-| 短暂连接故障或服务不可用 | 在次数与剩余预算允许时尝试恢复 |
-| 限流响应 | 参考服务端等待提示，预算不足则结束等待 |
-| 检索成功、生成超时 | 保留适用原文，明确回答未完成 |
-| 资料没有适用内容 | 澄清版本或补充资料，不靠重试制造依据 |
+## 运行环境与完整代码
 
-urllib3 将连接错误与发送请求后的读取错误分别配置；后者发生时，服务端可能已经处理请求。这个区别会直接影响是否能够安全重试。[urllib3 Retry 官方说明](https://urllib3.readthedocs.io/en/stable/reference/urllib3.util.html#urllib3.util.Retry)
+环境：Python 3.12，Windows PowerShell 或 WSL/Linux 终端。无需 API Key，无第三方依赖，不连接外网；原文由脚本中的演示数据传入。
 
-## 次数限制之外，还需要总预算
+```bash
+python --version  # 确认使用 Python 3.12。
+python retry_fallback.py  # 运行四种故障注入并打印分支状态。
+```
 
-假设一次问答的设计等待上限是十五秒，这只是预算示例，不是实测性能。检索已用两秒，生成、退避等待、可能的下一次尝试和响应呈现都需要共享剩余时间。若每层都单独允许十五秒，用户实际等待就可能远超预期。
+[下载完整的 retry_fallback.py](/examples/agent-lab/retry_fallback.py)
 
-设计中需要在每次尝试和等待前重新检查剩余预算，并将单次调用超时限制在剩余范围内。预算不足就停止新增尝试，记录已经耗费的阶段。重试装饰器不能替代底层客户端的超时设置，本地停止等待也不等于上游任务已经取消。
+```python
+import asyncio  # 使用协程等待和可协作取消的超时机制。
+import json  # 输出可核查的状态，而不是只打印自然语言答案。
+MAX_ATTEMPTS = 2  # 将总尝试次数集中配置，含第一次调用。
 
-Tenacity 把是否重试、如何等待和何时停止分开表达，便于组合异常筛选与停止条件。这里借鉴的是策略拆分方式，不是直接套一个装饰器就宣称具备完整超时控制。[Tenacity 官方仓库](https://github.com/jd/tenacity)
+async def fake_model(mode, attempt):  # 用确定性故障替身复现边界，不调用真实模型。
+    if mode == "invalid":  # 模拟不可通过重复请求解决的参数错误。
+        raise ValueError("缺少 query 参数")  # 本例将参数错误归为不可重试。
+    if mode == "flaky" and attempt == 1:  # 只在第一次制造临时连接故障。
+        raise ConnectionError("模拟连接中断")  # 后续重试可以成功。
+    if mode == "timeout":  # 通过异步等待模拟慢响应。
+        await asyncio.sleep(0.05)  # 等待点可以响应取消，不阻塞事件循环。
+    return "v2 请核对 customer_id 列"  # 成功分支使用固定演示答案。
 
-## 只读查询与写入操作分别考虑
+async def answer_with_fallback(mode, sources, total_budget=0.2):  # 对一次回答设置整体预算。
+    attempts, reason = 0, ""  # 记录实际调用次数和最后失败原因。
+    try:  # 外层捕获总预算用尽。
+        async with asyncio.timeout(total_budget):  # 预算包含调用与两次调用之间的等待。
+            for attempt in range(1, MAX_ATTEMPTS + 1):  # 最多尝试两次，不让模型无限重试。
+                attempts = attempt  # 在发起调用前记录这一次尝试。
+                try:  # 每次调用都有独立的处理分支。
+                    text = await asyncio.wait_for(fake_model(mode, attempt), timeout=0.01)  # 单次等待最多十毫秒。
+                    return {"status": "ok", "attempts": attempts, "answer": text, "sources": sources, "reason": ""}  # 成功后立即结束。
+                except (ConnectionError, TimeoutError) as error:  # 只重试本例允许的临时错误。
+                    reason = type(error).__name__  # 保存失败类型，供外部日志与界面区分。
+                    if attempt < MAX_ATTEMPTS:  # 最后一次失败后不再无意义地等待。
+                        await asyncio.sleep(0.002)  # 退避等待同样受外层总预算约束。
+                except ValueError:  # 参数错误直接返回，不进入重试。
+                    return {"status": "invalid", "attempts": attempts, "answer": "", "sources": [], "reason": "ValueError"}  # 不伪造业务答案。
+    except TimeoutError:  # 外层总预算先于调用完成时进入这里。
+        reason = "total_timeout"  # 与单次超时耗尽重试明确区分。
+    status = "source_only" if sources else "unavailable"  # 仅有真实检索结果时才允许原文降级。
+    return {"status": status, "attempts": attempts, "answer": "", "sources": sources, "reason": reason}  # 保留原文，声明未完成生成。
 
-重复读取知识片段通常不会改变业务数据，但仍会增加延迟和负载；重复调用模型还可能产生额外费用。因此只读也需要次数和总预算约束，不能默认无限重试。
+async def main():  # 顺序运行四种可重复的故障实验。
+    sources = ["manual_v2.md#E102：必填列为 customer_id"]  # 将已检索到的演示原文作为输入。
+    cases = [("flaky", "flaky", 0.2), ("timeout", "timeout", 0.2), ("invalid", "invalid", 0.2), ("deadline", "timeout", 0.003)]  # 分别验证恢复、重试耗尽、拒绝重试与总预算。
+    for label, mode, budget in cases:  # 每种场景都重新开始计数。
+        result = await answer_with_fallback(mode, sources, budget)  # 执行同一个控制入口。
+        print(label, json.dumps(result, ensure_ascii=False))  # 输出真实分支和尝试次数。
 
-如果未来增加“提交退款”工具，读取超时后再次提交就可能重复操作。此时要先确认结果、查询操作状态，并依赖服务端约定的幂等机制，不能仅凭一个错误消息决定再写一次。HTTP 方法的重试配置，也不能替代具体业务的幂等判断。
+if __name__ == "__main__":  # 被其他模块导入时不运行演示。
+    asyncio.run(main())  # 脚本不访问网络，也不执行数据库写操作。
+```
 
-退避等待可以减少立即重试造成的压力；有服务端等待提示时还要结合总预算判断。这里的目标是让一次请求有可解释的结束方式，不追求把所有错误都变成成功。
+## 本地运行输出
 
-## 降级输出要保留什么
+以下输出已在 Python 3.12.14 核对，重点看状态、尝试次数和原因：
 
-在检索成功、权限允许且版本匹配的前提下，生成超时可以展示片段标题、适用版本、原文和来源，并说明“已找到资料，回答生成未完成”。这不是一份已经完成的 AI 答案，界面需要清楚区分。
+```text
+flaky {"status": "ok", "attempts": 2, "answer": "v2 请核对 customer_id 列", "sources": ["manual_v2.md#E102：必填列为 customer_id"], "reason": ""}
+timeout {"status": "source_only", "attempts": 2, "answer": "", "sources": ["manual_v2.md#E102：必填列为 customer_id"], "reason": "TimeoutError"}
+invalid {"status": "invalid", "attempts": 1, "answer": "", "sources": [], "reason": "ValueError"}
+deadline {"status": "source_only", "attempts": 1, "answer": "", "sources": ["manual_v2.md#E102：必填列为 customer_id"], "reason": "total_timeout"}
+```
 
-检索本身失败时，没有可确认的本次证据，就不能伪装成原文降级。日志可保存请求标识、阶段、错误类别、尝试次数和耗时；问题文本等内容按实际需要记录，避免将全部上下文无差别写入日志。
+第一行说明临时连接错误得到了一次重试。第二行没有生成回答，却仍保留已经检索到的原文。第三行在参数错误后立即结束。第四行由外层总预算终止，区别于两次单独超时后耗尽次数。
 
-## 验证清单
+## 总预算与单次超时放在哪里
 
-验证时先固定问题、资料和预期反馈，再分别注入生成超时、检索失败与限流响应，核对以下项目：
+外层 `asyncio.timeout` 包住调用和退避等待，内层 `wait_for` 只限制一次生成。两次调用之间的等待同样消耗整体预算，不能因为进入重试就重新赠送一整段等待时间。
 
-- 同一输入的资料不足与服务异常是否返回不同状态。
-- 剩余时间不足时是否停止等待，没有继续发起额外尝试。
-- 原文降级是否保留正确版本与来源，未把片段伪装成生成结论。
-- SDK 与应用的重试是否叠加，记录的次数能否对应真实请求。
-- 涉及写入时是否核对原操作结果，避免将结果未知直接视为未执行。
+示例只允许 `ConnectionError` 和 `TimeoutError` 重试，`ValueError` 立即返回。接入 SDK 时，应按其具体异常定义补充认证失败、限流和网络错误分类，不能照搬本地异常名就认为覆盖了全部情况。
 
-后续需要保存实际响应和计时记录，再判断方案是否达到预期。故障注入只证明测试分支被执行，不等于经历过线上事故。
+原文降级也有前提：`sources` 必须来自已经完成的检索。函数收到空列表时会返回 `unavailable`，不会编造来源。若调用者确认检索成功但本来没有资料，应在生成前走“证据不足”的业务分支，而不是故意调用模型等它失败。
 
-## 开源阅读入口
+## 再做两个小实验
 
-- [Tenacity](https://github.com/jd/tenacity)：查看停止、等待与异常筛选的组合方式。
-- [urllib3 Retry](https://urllib3.readthedocs.io/en/stable/reference/urllib3.util.html#urllib3.util.Retry)：核对连接、读取、方法和状态码的重试语义。
+把 `MAX_ATTEMPTS` 改成一，观察 flaky 不再有第二次成功机会。随后恢复为二，把最后一组的整体预算从三毫秒改为二百毫秒，检查它是否从 `total_timeout` 变成两次单独超时后的降级。
 
-本文于 2026 年 11 月 3 日整理；库版本与接口可能变化，实现时应以锁定版本的文档和实际行为为准。
+这个演示中的协程会在 `await asyncio.sleep` 处响应取消。真实网络调用、本地线程或远端工具是否停止，必须另外核查；本地超时不能证明远端操作没有执行。查询和退款写入也不能共用同一套盲目重试规则，写操作需要先确认状态并考虑幂等。
+
+## 资料入口
+
+- [Python 3.12：asyncio 超时与等待](https://docs.python.org/3.12/library/asyncio-task.html#timeouts)：外层超时上下文与取消行为。
+- [Python 3.12：wait_for](https://docs.python.org/3.12/library/asyncio-task.html#asyncio.wait_for)：单次等待、取消和超时的官方说明。
+
+## 中文实战阅读
+
+[阿瑞说项目管理：Agent可靠性工程，博客园](https://www.cnblogs.com/itarui/p/20404026)可作为失败控制的中文阅读入口。本文用独立故障替身执行四条分支，运行结果以本页脚本为准。

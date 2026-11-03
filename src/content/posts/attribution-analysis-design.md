@@ -1,47 +1,121 @@
 ---
-title: 退款金额为什么增加：从指标口径到 SQL 复验
-description: 用退款分析场景拆解统计时间、金额单位、SQL 纠错复验与报告核查，说明归因分析系统的参考架构和改造设计。
+title: "给 SQL Agent 加执行边界：只读查询、纠错复验与金额核对"
+description: "运行五条演示退款数据，核对350元结果，拒绝写入，并实际改变状态条件观察999.99元的错误口径。"
 pubDatetime: 2026-11-03T10:00:00+08:00
 archiveDatetime: 2026-03-20T12:00:00+08:00
 featured: true
 draft: false
-series: 可靠 AI 应用工程
+series: "AI Agent 代码实操"
 seriesOrder: 6
-noteType: 架构分析
+noteType: "代码实操"
 tags:
   - agent
   - nl2sql
   - 项目走读
 ---
 
-“为什么本月退款金额比上月增加？”这句话可以触发一次查询，也可能掩盖时间、状态和金额单位的差异。本文基于电商归因分析参考代码，推演一条可核查的分析路径。案例与改造方案不代表本人已经完成系统运行或上线验证。
+运营问“十月成功退款金额是多少”，Agent 生成的 SQL 能执行，并不说明它统计了正确的月份和状态。本篇把查询工具缩到五条演示记录：先算出可手工核对的数字，再测试错误 SQL、修正后复验和写入拒绝。代码只使用 Python 标准库，可以直接运行。
 
 ## 目录
 
-## 案例：先让两期数字具有可比性
+## 五条资料先把口径摆出来
 
-先澄清“本月”是完整自然月还是截至当天的累计，再选择相同口径的比较区间。这个设计案例将退款金额定义为：按退款成功时间，汇总成功退款记录的金额；申请中的记录另行统计。若业务关心申请金额，应作为另一个指标说明。
+三条十月成功退款分别为120元、80元和150元；另外两条是十月未成功记录999.99元，以及十一月成功记录50元。正确目标为350元。表中日期表示本例定义的状态时间，金额按整数分保存；这些都是自编演示资料。
 
-取数前固定三个条件：同一时区与日期边界、同一退款状态、同一金额单位。原始金额若以分保存，转换为元的位置应明确，避免漏转或重复转换。用户继续问退款率时，还要重新明确分子、分母与统计窗口，不能把金额增长直接解释成退款率上升。
+SQL 的日期条件使用左闭右开区间，状态必须为success。参数绑定传递日期和状态，金额只在显示时从分转成元。这能把“查询执行正确”和“业务条件选对”分开检查。[Python中文SQLite文档](https://docs.python.org/zh-cn/3.12/library/sqlite3.html)可对照参数绑定及连接回调；[LangGraph SQL Agent官方教程](https://docs.langchain.com/oss/python/langgraph/sql-agent)提供完整框架链路的阅读入口。
 
-## 从问题到报告，证据怎样连接
+## 完整代码
 
-参考架构中，insight-agent 使用 deepagents 组织分析工具与 Skill；data-agent 通过 LangGraph 编排元数据召回、SQL 生成、验证、纠错与执行。auth 负责认证，dbmock 提供模拟电商数仓。取数服务通过 SSE 返回结果，CSV / JSON 中间文件与 HTML 报告分别留存。
+环境：Python 3.12，Windows PowerShell、WSL或其他已配置Python的终端。先解压[全部示例](/examples/agent-lab.zip)，进入agent-lab目录；本篇不需要安装第三方依赖。[下载sql_readonly.py](/examples/agent-lab/sql_readonly.py)。
 
-验证设计把链路收敛为：问题与指标定义 → 查询 SQL → 结果文件 → 计算过程 → 报告。先用独立汇总查询核对两期总额，再检查渠道、地域等分组是否各自对账。不同维度是不同观察角度，不能把它们的变化贡献直接相加。
+```python
+import sqlite3  # 用标准库 SQLite 演示只读查询，不连接真实业务数据库。
+from decimal import Decimal  # 用十进制定点转换分与元。
+from time import monotonic  # 为每条查询设置执行时间边界。
 
-报告中的关键数字应能回到对应数据与计算方法。维度拆解可以定位变化集中在哪里；“某渠道增长”仍不能单独证明业务原因，需要把观察事实、解释假设和待核实事项分开。
+def create_demo():  # 创建仅存在内存中的自编退款资料。
+    db = sqlite3.connect(":memory:")  # 进程结束后演示库自动消失。
+    db.execute("CREATE TABLE refunds(day TEXT, cents INTEGER, status TEXT, channel TEXT)")  # 金额始终存整数分。
+    rows = [("2026-10-02", 12000, "success", "搜索"), ("2026-10-15", 8000, "success", "搜索"), ("2026-10-23", 15000, "success", "推荐"), ("2026-10-26", 99999, "pending", "推荐"), ("2026-11-01", 5000, "success", "搜索")]  # 五行资料覆盖状态与跨月边界。
+    db.executemany("INSERT INTO refunds VALUES (?, ?, ?, ?)", rows)  # 初始化使用参数绑定。
+    db.commit()  # 初始化结束后再收紧查询连接。
+    db.execute("PRAGMA query_only = ON")  # 在该连接上开启只读模式。
+    allowed = {sqlite3.SQLITE_SELECT, sqlite3.SQLITE_READ, sqlite3.SQLITE_FUNCTION}  # 此演示只允许查询所需动作。
+    db.set_authorizer(lambda action, *args: sqlite3.SQLITE_OK if action in allowed else sqlite3.SQLITE_DENY)  # 在数据库执行层拒绝写入和其他动作。
+    return db  # 返回受到约束的演示连接。
 
-## 工程切入点：纠错后的 SQL 也要复验
+def checked_query(db, sql, parameters=()):  # 新查询和修正后的查询使用同一个入口。
+    deadline = monotonic() + 0.2  # 每次入口建立独立的查询预算。
+    db.set_progress_handler(lambda: int(monotonic() > deadline), 1000)  # 周期性检查执行预算。
+    try:  # 执行前校验与真正查询均在同一权限连接上完成。
+        db.execute("EXPLAIN QUERY PLAN " + sql, parameters).fetchall()  # 每次都重新检查当前 SQL。
+        return db.execute(sql, parameters).fetchmany(20)  # 控制返回条数，避免把无限结果交给模型。
+    finally:  # 无论成功失败均清理本次预算回调。
+        db.set_progress_handler(None, 0)  # 不把上一次截止时间带入下一次查询。
 
-参考代码已有 EXPLAIN 和 SQL 纠错节点，但纠错后的路径直接连接执行。前一次检查针对的是旧查询，不能代替对新 SQL 的检查；EXPLAIN 本身也不等于只读权限控制。
+if __name__ == "__main__":  # 直接运行即可观察正常、修正与拒绝分支。
+    db = create_demo()  # 所有演示数据在本次运行内创建。
+    parameters = ("2026-10-01", "2026-11-01", "success")  # 日期采用左闭右开范围。
+    sql = "SELECT channel, SUM(cents) FROM refunds WHERE day >= ? AND day < ? AND status = ? GROUP BY channel ORDER BY channel"  # 分组与总额使用相同条件。
+    try:  # 主查询只统计已成功的十月退款。
+        result = checked_query(db, sql, parameters)  # 实际执行受约束的查询。
+        for channel, cents in result:  # 按渠道显示查询结果。
+            print(channel, f"{Decimal(cents) / 100:.2f} 元")  # 只在显示边界把分转换成元。
+        print("合计", f"{Decimal(sum(row[1] for row in result)) / 100:.2f} 元")  # 核对分组加总。
+        try:  # 人为制造一次语法错误。
+            checked_query(db, "SELEC SUM(cents) FROM refunds")  # 错误不会被当作金额为零。
+        except sqlite3.DatabaseError:  # 记录失败后提交另一条查询。
+            total = checked_query(db, "SELECT SUM(cents) FROM refunds WHERE day >= ? AND day < ? AND status = ?", parameters)  # 修正查询重新走校验。
+            print("修正后复验", total[0][0], "分")  # 输出与分组结果相互核对。
+        try:  # 验证数据库层面的写入约束。
+            checked_query(db, "DELETE FROM refunds")  # 此语句应被数据库拒绝。
+        except sqlite3.DatabaseError:  # 捕获拒绝，不尝试其他路径执行。
+            print("写入请求被拒绝")  # 只输出状态，不隐藏失败原因。
+    finally:  # 演示结束时释放内存连接。
+        db.close()  # 不在用户磁盘创建业务数据。
+```
 
-改造方案将纠错结果重新送回校验，限制纠错次数与总耗时，并结合只读账号、允许查询的数据范围和结果规模约束执行。校验失败、无数据和服务超时分别返回明确状态，不让模型把查询失败补写成业务结论。这些属于设计范围，效果需要实际运行记录验证。
+`checked_query`是唯一执行入口：新查询和修正查询都先重新检查，再实际执行。只读PRAGMA和authorizer放在连接层，不能仅在Prompt里写“不要删除”。进度回调限制本次演示的查询执行时间，fetchmany只约束取回条数，两者作用不同。
 
-## 怎样验证这两个设计重点
+## 运行及实际输出
 
-- **口径核查：** 固定演示数据，设置跨月退款、未成功退款与金额单位检查项，以参考查询核对总额和分组结果。
-- **执行核查：** 设置一次需要纠错的查询，检查新 SQL 是否重新接受校验；无效查询是否停止，失败信息是否被保留。
-- **报告核查：** 保存问题、配置、SQL、结果文件与报告，逐项检查数字和依据，标注仍无法确认的原因。
+```powershell
+python sql_readonly.py # 运行内存数据库中的查询、纠错与写入拒绝。
+```
 
-这份案例希望回答两个具体问题：取数口径是否一致，报告结论能否被复查。后续成果应由本人修改、实际输出与复测记录支撑，本篇不报告未经测量的准确率或效率提升。
+本次Python 3.12.14运行输出：
+
+```text
+推荐 150.00 元
+搜索 200.00 元
+合计 350.00 元
+修正后复验 35000 分
+写入请求被拒绝
+```
+
+两条搜索渠道记录合计200元，推荐渠道为150元；独立总额查询返回35000分。未成功记录和十一月记录均未进入本次统计。
+
+## 改错实验：只读仍可能算错
+
+将main中的parameters最后一项由success改为pending，其余代码和数据保持不变。这个变体已经实际执行：
+
+```text
+推荐 999.99 元
+合计 999.99 元
+修正后复验 99999 分
+写入请求被拒绝
+```
+
+SQL仍然合法、只读、能够执行，但统计目标已经变成未成功记录。这个实验说明权限校验不能替代指标核查。先核对状态、日期和单位，再把数字交给报告生成环节。
+
+## 迁移到真实归因系统要补什么
+
+此处演示的是SQLite连接边界，不是生产数据库权限方案。迁移到MySQL等数据库时，要使用该数据库的只读账号、表列授权与查询超时；修正后的SQL仍须重新走实际检查。授权回调也不是完整的资源隔离系统，不应据此声称所有任意SQL都已安全。
+
+建议保留问题、指标定义、当前SQL、参数和结果，让报告中的350元能回到具体记录。出现SQL错误时返回错误状态，不把执行失败解释成“金额为零”。
+
+## 继续阅读
+
+- [Python 3.12中文文档：sqlite3](https://docs.python.org/zh-cn/3.12/library/sqlite3.html)：参数绑定、authorizer及进度回调。
+- [SQLite：授权回调](https://www.sqlite.org/c3ref/set_authorizer.html)：核对允许与拒绝动作的执行语义。
+- [LangGraph：自定义SQL Agent](https://docs.langchain.com/oss/python/langgraph/sql-agent)：进一步阅读模型、检查节点与执行节点的连接。

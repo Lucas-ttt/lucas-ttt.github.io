@@ -1,0 +1,89 @@
+$ python knowledge_tool.py
+v2 ['csv-v2']
+v1 ['csv-v1']
+v9 []
+
+$ python chunk_context.py
+v2 0:18 'CSV 导入说明。先确认产品是 v2'
+v2 18:36 '；E102 要检查 customer'
+v2 36:54 '_id。文件使用 UTF-8 编码。'
+拼回一致: True
+每段不超预算: True
+完整字段命中: False
+
+$ python retrieval_demo.py
+未限定版本: ['csv-v1', 'csv-v2']
+限定 v2: ['csv-v2']
+限定 v1: ['csv-v1']
+编码错误: ['encoding-v2']
+未知版本: []
+空版本: version 必须是非空字符串
+错误 top_k: top_k 必须是 1 到 5 的整数
+
+$ python citation_checks.py
+正常引用: 通过
+旧版 ID: ['不属于本次检索: csv-v1']
+未知 ID: ['不属于本次检索: made-up']
+混入旧证据: ['版本不符: csv-v1']
+没有引用: ['缺少引用']
+错误建议的 ID 检查: 通过
+仍需核查: 请在 CSV 表头添加 user_id ；v2 原文要求 customer_id
+
+$ python eval_tools.py
+PASS v1 的 E102: ['csv-v1']
+PASS v2 的 E102: ['csv-v2']
+PASS v2 的 E201: ['encoding-v2']
+PASS 未知版本: []
+PASS 空问题: ValueError: query 必须是非空字符串
+PASS 空版本: ValueError: version 必须是非空字符串
+PASS 零条候选: ValueError: top_k 必须是 1 到 5 的整数
+PASS 文本数量: ValueError: top_k 必须是 1 到 5 的整数
+工具回归通过: 8/8
+
+$ python sql_readonly.py
+推荐 150.00 元
+搜索 200.00 元
+合计 350.00 元
+修正后复验 35000 分
+写入请求被拒绝
+
+$ python session_memory.py
+{"session": "A", "chars": 25, "turns": [{"question": "改成 v2", "answer": "使用 v2 资料"}, {"question": "仍报 E102", "answer": "核对必填列"}]}
+{"session": "B", "chars": 8, "turns": [{"question": "查询退款", "answer": "请给日期"}]}
+budget_error: 最新一轮超过历史字符预算
+
+$ python langgraph_agent.py
+节点 decide 消息 ai
+节点 tools 消息 tool
+节点 decide 消息 ai
+结果 CSV 导入缺少 customer_id 列，检查首行表头。 [来源 csv-v2]
+
+$ python retry_fallback.py
+flaky {"status": "ok", "attempts": 2, "answer": "v2 请核对 customer_id 列", "sources": ["manual_v2.md#E102：必填列为 customer_id"], "reason": ""}
+timeout {"status": "source_only", "attempts": 2, "answer": "", "sources": ["manual_v2.md#E102：必填列为 customer_id"], "reason": "TimeoutError"}
+invalid {"status": "invalid", "attempts": 1, "answer": "", "sources": [], "reason": "ValueError"}
+deadline {"status": "source_only", "attempts": 1, "answer": "", "sources": ["manual_v2.md#E102：必填列为 customer_id"], "reason": "total_timeout"}
+
+$ python mcp_client.py
+发现工具 ['lookup_support']
+调用错误 False
+结构化结果 {"result": [{"id": "csv-v2", "version": "v2", "error_code": "E102", "text": "CSV 导入缺少 customer_id 列，检查首行表头。", "source": "demo/csv-v2.md"}]}
+
+$ python langgraph_agent.py --repeat
+节点 decide 消息 ai
+节点 tools 消息 tool
+节点 decide 消息 ai
+节点 tools 消息 tool
+节点 decide 消息 ai
+节点 tools 消息 tool
+达到图执行上限：6 步
+
+$ python mcp_client.py --version v9
+发现工具 ['lookup_support']
+调用错误 False
+结构化结果 {"result": []}
+
+$ python mcp_client.py --bad-input
+发现工具 ['lookup_support']
+调用错误 True
+结构化结果 null

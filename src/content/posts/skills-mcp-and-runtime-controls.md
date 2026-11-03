@@ -1,6 +1,6 @@
 ---
-title: Skill、MCP 与 harness：一次检索调用由谁负责
-description: 用只读知识检索场景区分任务说明、工具协议和运行控制，展开参数校验、来源核查与停止条件的设计边界。
+title: "MCP 双端实操：发现检索工具，区分空结果与调用错误"
+description: "用固定版本MCP Python SDK运行stdio服务端和客户端，实际观察工具发现、v2证据、v9空结果和错误参数返回。"
 pubDatetime: 2026-11-03T10:00:00+08:00
 archiveDatetime: 2026-01-05T12:00:00+08:00
 featured: false
@@ -9,65 +9,119 @@ tags:
   - agent
   - mcp
   - skill
-series: 可靠 AI 应用工程
+series: "AI Agent 代码实操"
 seriesOrder: 10
-noteType: 开源研读
+noteType: "代码实操"
 ---
 
-给知识库加上一份任务说明、一个检索函数，就能称为完成 Skill 与 MCP 集成吗？本文结合官方规范，推演一次只读知识检索调用。内容是开源研读与设计说明，尚未完成项目中的实际协议接入，不将概念理解写成实现成果。
+[张高兴在博客园的LangGraph与MCP文章](https://www.cnblogs.com/zhanggaoxing/p/18889516)给出了服务端、工具加载和调用的文件结构。本篇先把链路收窄：一个客户端启动一个只读知识检索服务，实际发现工具并拿回结果。这里固定官方Python SDK的1.30.0版本，不混用main分支或旧适配器的API。
 
 ## 目录
 
-## 三种职责先分开
+## 文件与运行环境
 
-以“查询产品 v2 导入 CSV 的排障资料”为例，Skill 可以告诉 Agent 何时需要确认版本、如何组织检索与引用；MCP 规范客户端和服务端交换能力与调用结果的方式；应用还需要决定能调用什么、何时停止以及怎样处理错误。
+Python 3.12，mcp==1.30.0。解压[完整示例](/examples/agent-lab.zip)，保留mcp_server.py、mcp_client.py和knowledge_tool.py。无需浏览器插件，也不请求模型；协议客户端会真实启动本地服务子进程。
 
-| 层次 | 在本场景中的职责 |
-| --- | --- |
-| Skill | 说明排障任务的适用条件、步骤、证据要求和输出约束 |
-| MCP | 让客户端发现服务端能力，并按约定交换工具请求与结果 |
-| 运行控制 | 校验参数与权限、组织上下文、限制步数与时间、记录执行过程 |
+```powershell
+python -m pip install -r requirements.txt # 在已激活虚拟环境中安装固定版本。
+python mcp_client.py # 一次完成服务启动、初始化、发现和工具调用。
+```
 
-Agent Skills 规范以含有 `SKILL.md` 的目录组织元数据、指令及可选资源，并描述按需加载的方式。文件存在不代表当前应用会发现、选择并执行它；需要检查宿主的实际支持与加载过程。[Agent Skills 规范](https://agentskills.io/specification)
+## 服务端：注册同一个检索函数
 
-MCP 聚焦上下文交换协议，并不替应用决定怎样使用模型或管理上下文。普通函数调用也可以完成检索，但没有客户端、服务端与协议交互，就不能据此声称已经接入 MCP。[MCP 官方架构说明](https://modelcontextprotocol.io/docs/learn/architecture)
+```python
+from mcp.server.fastmcp import FastMCP  # 使用固定在 requirements.txt 中的官方 v1 SDK。
+from knowledge_tool import search_knowledge  # 复用同一份只读版本检索逻辑。
 
-## 用一次只读调用展开流程
+server = FastMCP("lucas-knowledge")  # 服务名用于工具发现。
 
-这里假设工具名为 `search_knowledge`，输入包含问题、产品版本和候选数量，输出包含片段标识、来源、版本和原文。这是接口设计示意，不是已经部署的工具。
+@server.tool()  # 将普通函数注册成可发现的 MCP 工具。
+def lookup_support(query: str, version: str) -> list[dict]:  # SDK 会根据签名生成参数描述。
+    """按明确的产品版本检索演示排障资料。"""  # 工具说明由客户端取得。
+    return search_knowledge(query, version)  # 后端仍负责校验参数与执行读取。
 
-第一步，应用确认任务条件。用户已说明 v2 就保留该条件；版本缺失时先澄清，不能从之前的话题随意继承。若激活排障 Skill，需要能够记录实际读取的指令和版本，避免把一个从未使用的文件当作执行依据。
+if __name__ == "__main__":  # 客户端会通过子进程启动本文件。
+    server.run(transport="stdio")  # 标准输出专用于协议，不能向其中随意 print 日志。
+```
 
-第二步，客户端取得服务端的工具描述。模型据此提出工具名和参数；应用与服务端仍要检查参数类型、候选数量上限及访问范围。模型提出调用只是请求，不能代替真实执行记录，更不能自行扩大权限。
+stdio把标准输出作为协议通道。调试日志不要随手print到服务端stdout，否则可能破坏消息解析；当前SDK自己的处理日志在stderr，下面结果块只列客户端stdout。
 
-第三步，工具执行并返回证据。应用将结果与本次调用关联，保留来源和版本；原文是待处理的数据，不能因为其中出现指令语句就改变工具权限。生成回答后，还要核对引用是否来自本次证据，以及证据是否支持建议。
+## 客户端：发现后再调用
 
-第四步，检查是否继续。证据不足可以按规则澄清或结束；发生可恢复故障才考虑有限重试。调用已经达到步数或耗时预算时，应返回明确状态，不能让模型不断换说法重复检索。
+```python
+import asyncio  # 使用 SDK 的异步客户端。
+import argparse  # 让同一客户端可以验证未知版本与错误参数。
+import json  # 显示结构化工具结果。
+import sys  # 服务端使用与客户端相同的虚拟环境解释器。
+from pathlib import Path  # 通过脚本位置定位服务端，不依赖当前工作目录。
+from mcp import ClientSession, StdioServerParameters  # 官方 MCP 客户端会话和进程参数。
+from mcp.client.stdio import stdio_client  # 建立实际的标准输入输出协议连接。
 
-## harness 在这里怎样落地
+async def main(version="v2", bad_input=False):  # 连接、发现与调用使用同一个会话。
+    script = Path(__file__).with_name("mcp_server.py")  # 定位同目录的服务端入口。
+    parameters = StdioServerParameters(command=sys.executable, args=[str(script)], env={"PYTHONDONTWRITEBYTECODE": "1", "PYTHONUTF8": "1"})  # 复用解释器并避免在示例目录生成缓存。
+    async with stdio_client(parameters) as (reader, writer):  # 启动服务子进程并打开协议通道。
+        async with ClientSession(reader, writer) as session:  # 创建实际 SDK 会话。
+            await session.initialize()  # 使用本次固定 SDK 版本完成会话初始化。
+            tools = await session.list_tools()  # 真实查询服务端工具清单。
+            print("发现工具", [item.name for item in tools.tools])  # 这份清单来自协议返回。
+            result = await session.call_tool("lookup_support", {"query": "" if bad_input else "E102", "version": version})  # 发起一次真实协议工具调用。
+            print("调用错误", result.isError)  # 失败状态不能伪装成正常证据。
+            print("结构化结果", json.dumps(result.structuredContent, ensure_ascii=False))  # 保存当前 SDK 返回的完整结构。
 
-本文用 harness 指围绕模型与工具组织执行的运行控制，不把它当作统一协议名。Deep Agents 的仓库展示了上下文、文件、工具和技能等能力如何被组合，也强调工具允许的能力需要在工具或执行环境处约束。[Deep Agents 官方仓库](https://github.com/langchain-ai/deepagents)
+if __name__ == "__main__":  # 直接执行客户端即可完成双端演示。
+    parser = argparse.ArgumentParser()  # 命令行参数不改变服务端实现。
+    parser.add_argument("--version", default="v2")  # 默认查询新版本资料。
+    parser.add_argument("--bad-input", action="store_true")  # 此参数主动注入一个空问题。
+    options = parser.parse_args()  # 读取本次验证条件。
+    asyncio.run(main(options.version, options.bad_input))  # 上下文结束后 SDK 会回收本次服务子进程。
+```
 
-对当前这个窄场景，可先用固定工作流完成版本确认、检索、证据组装和引用核查。需要让模型动态选择下一步时，再引入工具选择与循环控制；需要多个客户端复用同一服务时，再评估协议接入的收益。
+sys.executable保证子进程使用客户端所在虚拟环境，Path(__file__)避免从其他目录启动时找不到服务文件。会话初始化、工具发现和call_tool是实际SDK调用，不是把一个HTTP函数改名为MCP。
 
-这样安排有一个取舍：流程灵活性暂时有限，但每一步更容易观察和验收。把 Skill、工具调用、MCP 与执行循环一次堆入项目，会让失败时难以分清问题来自任务说明、参数、连接还是检索本身。
+## 正常路径的实际输出
 
-## 验证清单与可检查产物
+```text
+发现工具 ['lookup_support']
+调用错误 False
+结构化结果 {"result": [{"id": "csv-v2", "version": "v2", "error_code": "E102", "text": "CSV 导入缺少 customer_id 列，检查首行表头。", "source": "demo/csv-v2.md"}]}
+```
 
-后续演练应保留同一问题的完整轨迹，至少检查以下内容：
+结构化返回的result包含csv-v2、版本和原文。这里输出对象的形状对应本次固定SDK与工具返回类型；调用方应检查实际schema，不能假设所有工具都返回这个字段。
 
-- Skill 是否实际被选择并读取，还是仅保存在目录中。
-- 工具参数是否携带正确版本，超出候选上限时是否被拒绝或规范化。
-- 协议客户端是否真实取得能力并完成调用，返回结果是否对应本次请求。
-- 工具失败、证据不足和达到预算时是否分别结束，两个会话是否混用状态。
-- 引用标识是否有效，原文是否适用；有引用不能直接判定答案正确。
+## 两条容易混淆的分支
 
-预期产物包括加载记录、工具描述、请求与返回、预算终止记录及引用核查表。只有完成真实调用和复测，才能把相应能力从设计说明升级为项目实践。
+```powershell
+python mcp_client.py --version v9 # 输入结构合法，但演示资料没有v9。
+python mcp_client.py --bad-input # 注入空问题，触发检索函数参数校验。
+```
 
-## 开源阅读入口
+未知版本：
 
-- [Agent Skills 规范仓库](https://github.com/agentskills/agentskills)：查看技能格式和按需加载约定。
-- [MCP 规范仓库](https://github.com/modelcontextprotocol/modelcontextprotocol)：结合当前版本核对协议与SDK文档。
-- [Deep Agents](https://github.com/langchain-ai/deepagents)：观察工具、上下文、技能与执行约束如何组合。
+```text
+发现工具 ['lookup_support']
+调用错误 False
+结构化结果 {"result": []}
+```
 
-本文于 2026 年 11 月 3 日整理；以上仓库作为阅读与设计参照，不代表已完成其全部能力的接入。
+空问题：
+
+```text
+发现工具 ['lookup_support']
+调用错误 True
+结构化结果 null
+```
+
+前者是正常调用的空结果，后者是工具调用错误。应用需要据此决定澄清版本、补充资料还是反馈参数问题，不能把两者统一显示成“模型没有答案”。
+
+## 接入Agent时增加哪一层
+
+MCP解决工具能力与调用结果如何交换，宿主仍要把发现的工具描述交给模型，并校验模型请求、权限和预算。它不会自动保存对话长期记忆，也不会因为工具通过协议注册就自动完成授权。
+
+如将本篇接入上一节LangGraph，需要把工具调用转交给该会话并回传结果，保留调用标识；不要同时另起一个互不关联的工具进程。真实多用户服务还要区分身份、会话与数据范围，本篇只演练一个本地只读工具。
+
+## 中文原文与版本依据
+
+- [张高兴：在LangGraph中使用MCP协议，博客园](https://www.cnblogs.com/zhanggaoxing/p/18889516)：中文文件结构与工具加载示例。
+- [一枫说码：MCP双端实战，博客园](https://www.cnblogs.com/yifeng-coding/p/19766178)：补充客户端与服务端开发的阅读入口。
+- [官方Python SDK v1.x](https://github.com/modelcontextprotocol/python-sdk/tree/v1.x)：核对本篇固定版本所属分支；升级SDK后应重新执行三个分支。
