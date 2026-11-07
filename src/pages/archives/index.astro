@@ -24,7 +24,8 @@ const t = useTranslations(locale);
 
 const posts = await getCollection("posts");
 const filteredPosts = posts.filter(postFilter);
-const archiveDate = (post: (typeof filteredPosts)[number]) => post.data.archiveDatetime ?? post.data.pubDatetime;
+const archiveDate = (post: (typeof filteredPosts)[number]) =>
+  post.data.pubDatetime;
 const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 ---
 
@@ -33,7 +34,10 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.archivesTitle} pageDesc="按自定义归档日期编排，文章正文另保留实际整理与更新记录。">
+  <Main
+    pageTitle={t.pages.archivesTitle}
+    pageDesc="按实际发布日期归档，系列文章可按阅读序号浏览。"
+  >
     {
       Object.entries(
         getPostsByGroupCondition(filteredPosts, post =>
@@ -68,12 +72,8 @@ const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long" });
                     {monthGroup
                       .sort(
                         (a, b) =>
-                          Math.floor(
-                            archiveDate(b).getTime() / 1000
-                          ) -
-                          Math.floor(
-                            archiveDate(a).getTime() / 1000
-                          )
+                          Math.floor(archiveDate(b).getTime() / 1000) -
+                          Math.floor(archiveDate(a).getTime() / 1000)
                       )
                       .map(data => (
                         <Card {...data} />

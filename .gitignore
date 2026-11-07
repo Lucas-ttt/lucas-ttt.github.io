@@ -32,3 +32,7 @@ public/pagefind
 # docker compose
 compose.override.yaml
 .sites-runtime/
+
+# Python example runs
+__pycache__/
+*.py[cod]

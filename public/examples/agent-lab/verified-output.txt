@@ -1,3 +1,8 @@
+验证于 2026-11-08 · Python 3.14.3 · Darwin
+
+
+# 本次标准库复验
+
 $ python project_walkthrough.py
 索引证据 ['csv-v1', 'csv-v2', 'encoding-v2']
 {"query": "E102", "version": "v2", "status": "ok", "ids": ["csv-v2"], "answer": "CSV 导入缺少 customer_id 列，检查首行表头。 [来源 csv-v2]"}
@@ -70,9 +75,9 @@ top_k=2 holdout {"passed": "6/7", "recall_macro": 0.75, "precision_macro": 0.75,
 计时说明 elapsed_ms逐条记录检索调用，不包含索引和模型；重复运行会变化
 
 $ python latency_cost.py
-baseline {"cache_hit": false, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 15.987, "retrieve": 16.359, "rerank": 15.245, "generate": 16.114}, "total_ms": 63.73}
-cached {"cache_hit": true, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 15.485, "retrieve": 0.002, "rerank": 0.0, "generate": 15.572}, "total_ms": 31.075}
-reduced {"cache_hit": true, "ids": ["csv-v2"], "status": "ok", "quality_ok": false, "usage": {"input_tokens": 240, "output_tokens": 40}, "estimated_yuan": 0.0008, "stage_ms": {"parse": 15.902, "retrieve": 0.002, "rerank": 0.0, "generate": 15.448}, "total_ms": 31.365}
+baseline {"cache_hit": false, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 2.345, "retrieve": 7.093, "rerank": 3.397, "generate": 15.022}, "total_ms": 27.866}
+cached {"cache_hit": true, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 2.296, "retrieve": 0.003, "rerank": 0.0, "generate": 15.048}, "total_ms": 17.359}
+reduced {"cache_hit": true, "ids": ["csv-v2"], "status": "ok", "quality_ok": false, "usage": {"input_tokens": 240, "output_tokens": 40}, "estimated_yuan": 0.0008, "stage_ms": {"parse": 2.296, "retrieve": 0.002, "rerank": 0.0, "generate": 12.047}, "total_ms": 14.357}
 版本变化 cache_hit False
 范围变化 cache_hit False
 修订变化 cache_hit False
@@ -85,6 +90,58 @@ $ python redesign_contracts.py
 旧语料 证据语料修订不匹配
 无证据 insufficient_evidence
 结构合法仍需语义核查 请添加 user_id 列
+
+$ python knowledge_tool.py
+v2 ['csv-v2']
+v1 ['csv-v1']
+v9 []
+
+$ python eval_tools.py
+PASS v1 的 E102: ['csv-v1']
+PASS v2 的 E102: ['csv-v2']
+PASS v2 的 E201: ['encoding-v2']
+PASS 未知版本: []
+PASS 空问题: ValueError: query 必须是非空字符串
+PASS 空版本: ValueError: version 必须是非空字符串
+PASS 零条候选: ValueError: top_k 必须是1到5的整数
+PASS 文本数量: ValueError: top_k 必须是1到5的整数
+工具回归通过: 8/8
+
+$ python retrieval_demo.py
+未限定版本: ['csv-v1', 'csv-v2']
+限定 v2: ['csv-v2']
+限定 v1: ['csv-v1']
+编码错误: ['encoding-v2']
+未知版本: []
+空版本: version 必须是非空字符串
+错误 top_k: top_k 必须是1到5的整数
+
+$ python citation_checks.py
+正常引用: 通过
+旧版 ID: ['不属于本次检索: csv-v1']
+未知 ID: ['不属于本次检索: made-up']
+混入旧证据: ['版本不符: csv-v1']
+没有引用: ['缺少引用']
+错误建议的 ID 检查: 通过
+仍需核查: 请在 CSV 表头添加 user_id ；v2 原文要求 customer_id
+
+$ python verify_examples.py
+test_empty_index_does_not_silently_rebuild (__main__.RetrievalRegression.test_empty_index_does_not_silently_rebuild) ... ok
+test_error_code_and_field_fragments_do_not_become_evidence (__main__.RetrievalRegression.test_error_code_and_field_fragments_do_not_become_evidence) ... ok
+test_evaluation_keeps_known_failure_visible (__main__.RetrievalRegression.test_evaluation_keeps_known_failure_visible) ... ok
+test_exact_identifiers_and_versions (__main__.RetrievalRegression.test_exact_identifiers_and_versions) ... ok
+test_invalid_inputs_are_rejected_by_both_entries (__main__.RetrievalRegression.test_invalid_inputs_are_rejected_by_both_entries) ... ok
+test_no_evidence_stays_empty_through_retry_and_workflow (__main__.RetrievalRegression.test_no_evidence_stays_empty_through_retry_and_workflow) ... ok
+test_project_and_tool_share_all_evaluation_results (__main__.RetrievalRegression.test_project_and_tool_share_all_evaluation_results) ... ok
+test_tool_preserves_public_schema_and_result_isolation (__main__.RetrievalRegression.test_tool_preserves_public_schema_and_result_isolation) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.022s
+
+OK
+
+
+# 历史补充实验（2026-11-03，未在本次重跑）
 
 $ python knowledge_tool.py
 v2 ['csv-v2']

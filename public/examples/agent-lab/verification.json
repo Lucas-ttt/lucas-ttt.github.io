@@ -1,13 +1,11 @@
 {
-  "verifiedDate": "2026-11-03",
-  "python": "3.12.14",
-  "packages": {
-    "mcp": "1.30.0",
-    "langgraph": "1.2.19",
-    "langchain-core": "1.7.4"
-  },
+  "verifiedDate": "2026-11-08",
+  "verifiedAt": "2026-11-08T05:02:34+08:00",
+  "python": "3.14.3",
+  "platform": "Darwin",
+  "packages": {},
   "externalModelVerified": false,
-  "scope": "当前十篇标准库原型与控制实验；早期框架例子的运行记录另外保留。无生产性能或真实模型质量结论。",
+  "scope": "当前十篇标准库入口、共享检索工具和边界回归已本机复验。无真实模型质量或生产性能结论。",
   "runs": [
     {
       "command": "python project_walkthrough.py",
@@ -61,7 +59,7 @@
       "command": "python latency_cost.py",
       "suite": "current-series",
       "exitCode": 0,
-      "stdout": "baseline {\"cache_hit\": false, \"ids\": [\"csv-v2\", \"encoding-v2\"], \"status\": \"ok\", \"quality_ok\": true, \"usage\": {\"input_tokens\": 320, \"output_tokens\": 80}, \"estimated_yuan\": 0.00128, \"stage_ms\": {\"parse\": 15.987, \"retrieve\": 16.359, \"rerank\": 15.245, \"generate\": 16.114}, \"total_ms\": 63.73}\ncached {\"cache_hit\": true, \"ids\": [\"csv-v2\", \"encoding-v2\"], \"status\": \"ok\", \"quality_ok\": true, \"usage\": {\"input_tokens\": 320, \"output_tokens\": 80}, \"estimated_yuan\": 0.00128, \"stage_ms\": {\"parse\": 15.485, \"retrieve\": 0.002, \"rerank\": 0.0, \"generate\": 15.572}, \"total_ms\": 31.075}\nreduced {\"cache_hit\": true, \"ids\": [\"csv-v2\"], \"status\": \"ok\", \"quality_ok\": false, \"usage\": {\"input_tokens\": 240, \"output_tokens\": 40}, \"estimated_yuan\": 0.0008, \"stage_ms\": {\"parse\": 15.902, \"retrieve\": 0.002, \"rerank\": 0.0, \"generate\": 15.448}, \"total_ms\": 31.365}\n版本变化 cache_hit False\n范围变化 cache_hit False\n修订变化 cache_hit False\n库外问题 {\"status\": \"insufficient_evidence\", \"ids\": [], \"usage\": {\"input_tokens\": 0, \"output_tokens\": 0}, \"estimated_yuan\": 0.0}"
+      "stdout": "baseline {\"cache_hit\": false, \"ids\": [\"csv-v2\", \"encoding-v2\"], \"status\": \"ok\", \"quality_ok\": true, \"usage\": {\"input_tokens\": 320, \"output_tokens\": 80}, \"estimated_yuan\": 0.00128, \"stage_ms\": {\"parse\": 2.345, \"retrieve\": 7.093, \"rerank\": 3.397, \"generate\": 15.022}, \"total_ms\": 27.866}\ncached {\"cache_hit\": true, \"ids\": [\"csv-v2\", \"encoding-v2\"], \"status\": \"ok\", \"quality_ok\": true, \"usage\": {\"input_tokens\": 320, \"output_tokens\": 80}, \"estimated_yuan\": 0.00128, \"stage_ms\": {\"parse\": 2.296, \"retrieve\": 0.003, \"rerank\": 0.0, \"generate\": 15.048}, \"total_ms\": 17.359}\nreduced {\"cache_hit\": true, \"ids\": [\"csv-v2\"], \"status\": \"ok\", \"quality_ok\": false, \"usage\": {\"input_tokens\": 240, \"output_tokens\": 40}, \"estimated_yuan\": 0.0008, \"stage_ms\": {\"parse\": 2.296, \"retrieve\": 0.002, \"rerank\": 0.0, \"generate\": 12.047}, \"total_ms\": 14.357}\n版本变化 cache_hit False\n范围变化 cache_hit False\n修订变化 cache_hit False\n库外问题 {\"status\": \"insufficient_evidence\", \"ids\": [], \"usage\": {\"input_tokens\": 0, \"output_tokens\": 0}, \"estimated_yuan\": 0.0}"
     },
     {
       "command": "python redesign_contracts.py",
@@ -71,95 +69,137 @@
     },
     {
       "command": "python knowledge_tool.py",
+      "suite": "shared-tool",
       "exitCode": 0,
-      "stdout": "v2 ['csv-v2']\nv1 ['csv-v1']\nv9 []",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python chunk_context.py",
-      "exitCode": 0,
-      "stdout": "v2 0:18 'CSV 导入说明。先确认产品是 v2'\nv2 18:36 '；E102 要检查 customer'\nv2 36:54 '_id。文件使用 UTF-8 编码。'\n拼回一致: True\n每段不超预算: True\n完整字段命中: False",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python retrieval_demo.py",
-      "exitCode": 0,
-      "stdout": "未限定版本: ['csv-v1', 'csv-v2']\n限定 v2: ['csv-v2']\n限定 v1: ['csv-v1']\n编码错误: ['encoding-v2']\n未知版本: []\n空版本: version 必须是非空字符串\n错误 top_k: top_k 必须是 1 到 5 的整数",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python citation_checks.py",
-      "exitCode": 0,
-      "stdout": "正常引用: 通过\n旧版 ID: ['不属于本次检索: csv-v1']\n未知 ID: ['不属于本次检索: made-up']\n混入旧证据: ['版本不符: csv-v1']\n没有引用: ['缺少引用']\n错误建议的 ID 检查: 通过\n仍需核查: 请在 CSV 表头添加 user_id ；v2 原文要求 customer_id",
-      "suite": "earlier-experiments"
+      "stdout": "v2 ['csv-v2']\nv1 ['csv-v1']\nv9 []"
     },
     {
       "command": "python eval_tools.py",
+      "suite": "shared-tool",
       "exitCode": 0,
-      "stdout": "PASS v1 的 E102: ['csv-v1']\nPASS v2 的 E102: ['csv-v2']\nPASS v2 的 E201: ['encoding-v2']\nPASS 未知版本: []\nPASS 空问题: ValueError: query 必须是非空字符串\nPASS 空版本: ValueError: version 必须是非空字符串\nPASS 零条候选: ValueError: top_k 必须是 1 到 5 的整数\nPASS 文本数量: ValueError: top_k 必须是 1 到 5 的整数\n工具回归通过: 8/8",
-      "suite": "earlier-experiments"
+      "stdout": "PASS v1 的 E102: ['csv-v1']\nPASS v2 的 E102: ['csv-v2']\nPASS v2 的 E201: ['encoding-v2']\nPASS 未知版本: []\nPASS 空问题: ValueError: query 必须是非空字符串\nPASS 空版本: ValueError: version 必须是非空字符串\nPASS 零条候选: ValueError: top_k 必须是1到5的整数\nPASS 文本数量: ValueError: top_k 必须是1到5的整数\n工具回归通过: 8/8"
     },
     {
-      "command": "python sql_readonly.py",
+      "command": "python retrieval_demo.py",
+      "suite": "shared-tool",
       "exitCode": 0,
-      "stdout": "推荐 150.00 元\n搜索 200.00 元\n合计 350.00 元\n修正后复验 35000 分\n写入请求被拒绝",
-      "suite": "earlier-experiments"
+      "stdout": "未限定版本: ['csv-v1', 'csv-v2']\n限定 v2: ['csv-v2']\n限定 v1: ['csv-v1']\n编码错误: ['encoding-v2']\n未知版本: []\n空版本: version 必须是非空字符串\n错误 top_k: top_k 必须是1到5的整数"
     },
     {
-      "command": "python session_memory.py",
+      "command": "python citation_checks.py",
+      "suite": "shared-tool",
       "exitCode": 0,
-      "stdout": "{\"session\": \"A\", \"chars\": 25, \"turns\": [{\"question\": \"改成 v2\", \"answer\": \"使用 v2 资料\"}, {\"question\": \"仍报 E102\", \"answer\": \"核对必填列\"}]}\n{\"session\": \"B\", \"chars\": 8, \"turns\": [{\"question\": \"查询退款\", \"answer\": \"请给日期\"}]}\nbudget_error: 最新一轮超过历史字符预算",
-      "suite": "earlier-experiments"
+      "stdout": "正常引用: 通过\n旧版 ID: ['不属于本次检索: csv-v1']\n未知 ID: ['不属于本次检索: made-up']\n混入旧证据: ['版本不符: csv-v1']\n没有引用: ['缺少引用']\n错误建议的 ID 检查: 通过\n仍需核查: 请在 CSV 表头添加 user_id ；v2 原文要求 customer_id"
     },
     {
-      "command": "python langgraph_agent.py",
+      "command": "python verify_examples.py",
+      "suite": "retrieval-regression",
       "exitCode": 0,
-      "stdout": "节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n结果 CSV 导入缺少 customer_id 列，检查首行表头。 [来源 csv-v2]",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python retry_fallback.py",
-      "exitCode": 0,
-      "stdout": "flaky {\"status\": \"ok\", \"attempts\": 2, \"answer\": \"v2 请核对 customer_id 列\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"\"}\ntimeout {\"status\": \"source_only\", \"attempts\": 2, \"answer\": \"\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"TimeoutError\"}\ninvalid {\"status\": \"invalid\", \"attempts\": 1, \"answer\": \"\", \"sources\": [], \"reason\": \"ValueError\"}\ndeadline {\"status\": \"source_only\", \"attempts\": 1, \"answer\": \"\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"total_timeout\"}",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python mcp_client.py",
-      "exitCode": 0,
-      "stdout": "发现工具 ['lookup_support']\n调用错误 False\n结构化结果 {\"result\": [{\"id\": \"csv-v2\", \"version\": \"v2\", \"error_code\": \"E102\", \"text\": \"CSV 导入缺少 customer_id 列，检查首行表头。\", \"source\": \"demo/csv-v2.md\"}]}",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python langgraph_agent.py --repeat",
-      "exitCode": 0,
-      "stdout": "节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n节点 tools 消息 tool\n达到图执行上限：6 步",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python mcp_client.py --version v9",
-      "exitCode": 0,
-      "stdout": "发现工具 ['lookup_support']\n调用错误 False\n结构化结果 {\"result\": []}",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python mcp_client.py --bad-input",
-      "exitCode": 0,
-      "stdout": "发现工具 ['lookup_support']\n调用错误 True\n结构化结果 null",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python chunk_parameter_demo.py",
-      "exitCode": 0,
-      "stdout": "18 3 False\n24 3 True\n36 2 False",
-      "suite": "earlier-experiments"
-    },
-    {
-      "command": "python rank_fusion_demo.py",
-      "exitCode": 0,
-      "stdout": "[('csv-v2', 0.032522), ('encoding-v2', 0.016393)]",
-      "suite": "earlier-experiments"
+      "stdout": "test_empty_index_does_not_silently_rebuild (__main__.RetrievalRegression.test_empty_index_does_not_silently_rebuild) ... ok\ntest_error_code_and_field_fragments_do_not_become_evidence (__main__.RetrievalRegression.test_error_code_and_field_fragments_do_not_become_evidence) ... ok\ntest_evaluation_keeps_known_failure_visible (__main__.RetrievalRegression.test_evaluation_keeps_known_failure_visible) ... ok\ntest_exact_identifiers_and_versions (__main__.RetrievalRegression.test_exact_identifiers_and_versions) ... ok\ntest_invalid_inputs_are_rejected_by_both_entries (__main__.RetrievalRegression.test_invalid_inputs_are_rejected_by_both_entries) ... ok\ntest_no_evidence_stays_empty_through_retry_and_workflow (__main__.RetrievalRegression.test_no_evidence_stays_empty_through_retry_and_workflow) ... ok\ntest_project_and_tool_share_all_evaluation_results (__main__.RetrievalRegression.test_project_and_tool_share_all_evaluation_results) ... ok\ntest_tool_preserves_public_schema_and_result_isolation (__main__.RetrievalRegression.test_tool_preserves_public_schema_and_result_isolation) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.022s\n\nOK"
     }
   ],
   "primarySeries": "AI Agent 开发实践",
-  "primaryScriptCount": 10
+  "primaryScriptCount": 10,
+  "historicalVerification": {
+    "verifiedDate": "2026-11-03",
+    "python": "3.12.14",
+    "packages": {
+      "mcp": "1.30.0",
+      "langgraph": "1.2.19",
+      "langchain-core": "1.7.4"
+    },
+    "scope": "历史补充实验的原始记录；本次未重新安装或验证第三方框架。",
+    "runs": [
+      {
+        "command": "python knowledge_tool.py",
+        "exitCode": 0,
+        "stdout": "v2 ['csv-v2']\nv1 ['csv-v1']\nv9 []",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python chunk_context.py",
+        "exitCode": 0,
+        "stdout": "v2 0:18 'CSV 导入说明。先确认产品是 v2'\nv2 18:36 '；E102 要检查 customer'\nv2 36:54 '_id。文件使用 UTF-8 编码。'\n拼回一致: True\n每段不超预算: True\n完整字段命中: False",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python retrieval_demo.py",
+        "exitCode": 0,
+        "stdout": "未限定版本: ['csv-v1', 'csv-v2']\n限定 v2: ['csv-v2']\n限定 v1: ['csv-v1']\n编码错误: ['encoding-v2']\n未知版本: []\n空版本: version 必须是非空字符串\n错误 top_k: top_k 必须是 1 到 5 的整数",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python citation_checks.py",
+        "exitCode": 0,
+        "stdout": "正常引用: 通过\n旧版 ID: ['不属于本次检索: csv-v1']\n未知 ID: ['不属于本次检索: made-up']\n混入旧证据: ['版本不符: csv-v1']\n没有引用: ['缺少引用']\n错误建议的 ID 检查: 通过\n仍需核查: 请在 CSV 表头添加 user_id ；v2 原文要求 customer_id",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python eval_tools.py",
+        "exitCode": 0,
+        "stdout": "PASS v1 的 E102: ['csv-v1']\nPASS v2 的 E102: ['csv-v2']\nPASS v2 的 E201: ['encoding-v2']\nPASS 未知版本: []\nPASS 空问题: ValueError: query 必须是非空字符串\nPASS 空版本: ValueError: version 必须是非空字符串\nPASS 零条候选: ValueError: top_k 必须是 1 到 5 的整数\nPASS 文本数量: ValueError: top_k 必须是 1 到 5 的整数\n工具回归通过: 8/8",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python sql_readonly.py",
+        "exitCode": 0,
+        "stdout": "推荐 150.00 元\n搜索 200.00 元\n合计 350.00 元\n修正后复验 35000 分\n写入请求被拒绝",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python session_memory.py",
+        "exitCode": 0,
+        "stdout": "{\"session\": \"A\", \"chars\": 25, \"turns\": [{\"question\": \"改成 v2\", \"answer\": \"使用 v2 资料\"}, {\"question\": \"仍报 E102\", \"answer\": \"核对必填列\"}]}\n{\"session\": \"B\", \"chars\": 8, \"turns\": [{\"question\": \"查询退款\", \"answer\": \"请给日期\"}]}\nbudget_error: 最新一轮超过历史字符预算",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python langgraph_agent.py",
+        "exitCode": 0,
+        "stdout": "节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n结果 CSV 导入缺少 customer_id 列，检查首行表头。 [来源 csv-v2]",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python retry_fallback.py",
+        "exitCode": 0,
+        "stdout": "flaky {\"status\": \"ok\", \"attempts\": 2, \"answer\": \"v2 请核对 customer_id 列\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"\"}\ntimeout {\"status\": \"source_only\", \"attempts\": 2, \"answer\": \"\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"TimeoutError\"}\ninvalid {\"status\": \"invalid\", \"attempts\": 1, \"answer\": \"\", \"sources\": [], \"reason\": \"ValueError\"}\ndeadline {\"status\": \"source_only\", \"attempts\": 1, \"answer\": \"\", \"sources\": [\"manual_v2.md#E102：必填列为 customer_id\"], \"reason\": \"total_timeout\"}",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python mcp_client.py",
+        "exitCode": 0,
+        "stdout": "发现工具 ['lookup_support']\n调用错误 False\n结构化结果 {\"result\": [{\"id\": \"csv-v2\", \"version\": \"v2\", \"error_code\": \"E102\", \"text\": \"CSV 导入缺少 customer_id 列，检查首行表头。\", \"source\": \"demo/csv-v2.md\"}]}",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python langgraph_agent.py --repeat",
+        "exitCode": 0,
+        "stdout": "节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n节点 tools 消息 tool\n节点 decide 消息 ai\n节点 tools 消息 tool\n达到图执行上限：6 步",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python mcp_client.py --version v9",
+        "exitCode": 0,
+        "stdout": "发现工具 ['lookup_support']\n调用错误 False\n结构化结果 {\"result\": []}",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python mcp_client.py --bad-input",
+        "exitCode": 0,
+        "stdout": "发现工具 ['lookup_support']\n调用错误 True\n结构化结果 null",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python chunk_parameter_demo.py",
+        "exitCode": 0,
+        "stdout": "18 3 False\n24 3 True\n36 2 False",
+        "suite": "earlier-experiments"
+      },
+      {
+        "command": "python rank_fusion_demo.py",
+        "exitCode": 0,
+        "stdout": "[('csv-v2', 0.032522), ('encoding-v2', 0.016393)]",
+        "suite": "earlier-experiments"
+      }
+    ]
+  }
 }

@@ -6,12 +6,17 @@ import ProjectCard from "@/components/ProjectCard.astro";
 import { projects } from "@/data/projects";
 ---
 
-<Layout title="项目 | Lucas_AI" description="电商归因分析与企业知识库项目案例：业务场景、系统架构、可靠性设计与验证方法。">
+<Layout
+  title="项目 | Lucas_AI"
+  description="离线知识检索原型与经营分析架构研读：已验证成果、核心代码、运行方法与后续设计。"
+>
   <Header />
   <main id="main-content" class="project-index app-layout">
     <p class="eyebrow">SELECTED PROJECTS</p>
-    <h1>从业务问题出发，<br />把实现过程展开。</h1>
-    <p class="index-intro">退款金额增加，怎样核对统计口径？同一报错在不同版本下，怎样找到适用的依据？从具体问题进入两个项目，查看关键设计、处理流程与验证方法。</p>
+    <h1>从可运行的原型，<br />了解我的工程实践。</h1>
+    <p class="index-intro">
+      先看已运行的离线知识检索原型，再看经营分析的架构研读与改造方案。每个项目明确当前完成范围，并提供对应的成果或设计材料。
+    </p>
     <div class="project-grid">
       {projects.map(project => <ProjectCard project={project} />)}
     </div>
@@ -19,7 +24,9 @@ import { projects } from "@/data/projects";
       <span class="note-mark" aria-hidden="true">↗</span>
       <div>
         <h2 id="method-title">看方案，也看证据</h2>
-        <p>从业务问题进入处理流程，查看模块职责、可靠性取舍与质量核查要点。参考架构、方案设计和实际验证分别说明，便于围绕具体实现展开交流。</p>
+        <p>
+          从业务问题进入处理流程，查看模块职责、可靠性取舍与质量核查要点。参考架构、方案设计和实际验证分别说明，便于围绕具体实现展开交流。
+        </p>
         <a href="/posts/">阅读技术笔记 <span aria-hidden="true">→</span></a>
       </div>
     </section>
@@ -28,15 +35,73 @@ import { projects } from "@/data/projects";
 </Layout>
 
 <style>
-  .project-index { padding-block: 4rem 4.5rem; }
-  .eyebrow { font: 0.72rem/1.5 "Cascadia Code", Consolas, monospace; letter-spacing: 0.16em; color: var(--accent); margin: 0 0 1.2rem; }
-  h1 { font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.4; letter-spacing: -0.035em; font-weight: 650; margin: 0; }
-  .index-intro { max-width: 42rem; color: var(--muted-foreground); font-size: 0.96rem; line-height: 1.95; margin: 1.4rem 0 3rem; }
-  .project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-  .method-note { display: flex; align-items: flex-start; gap: 1.3rem; padding: 2rem 0 0; margin-top: 3rem; border-top: 1px solid var(--border); }
-  .note-mark { font-size: 1.5rem; color: var(--accent); line-height: 1; }
-  .method-note h2 { margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 600; }
-  .method-note p { max-width: 43rem; margin: 0 0 0.8rem; color: var(--muted-foreground); font-size: 0.87rem; line-height: 1.9; }
-  .method-note a { font-size: 0.83rem; color: var(--accent); text-underline-offset: 4px; }
-  @media (max-width: 700px) { .project-index { padding-block: 2.5rem 3rem; } .project-grid { grid-template-columns: 1fr; } }
+  .project-index {
+    padding-block: 4rem 4.5rem;
+  }
+  .eyebrow {
+    font:
+      0.72rem/1.5 "Cascadia Code",
+      Consolas,
+      monospace;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    margin: 0 0 1.2rem;
+  }
+  h1 {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.4;
+    letter-spacing: -0.035em;
+    font-weight: 650;
+    margin: 0;
+  }
+  .index-intro {
+    max-width: 42rem;
+    color: var(--muted-foreground);
+    font-size: 0.96rem;
+    line-height: 1.95;
+    margin: 1.4rem 0 3rem;
+  }
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+  .method-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.3rem;
+    padding: 2rem 0 0;
+    margin-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+  .note-mark {
+    font-size: 1.5rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .method-note h2 {
+    margin: 0 0 0.6rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+  .method-note p {
+    max-width: 43rem;
+    margin: 0 0 0.8rem;
+    color: var(--muted-foreground);
+    font-size: 0.87rem;
+    line-height: 1.9;
+  }
+  .method-note a {
+    font-size: 0.83rem;
+    color: var(--accent);
+    text-underline-offset: 4px;
+  }
+  @media (max-width: 700px) {
+    .project-index {
+      padding-block: 2.5rem 3rem;
+    }
+    .project-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>

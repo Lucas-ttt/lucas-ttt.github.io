@@ -9,7 +9,7 @@
 - 内容定位与写作约定：先读CONTENT_GUIDE.md，保持个人技术分享与工程实践的叙述方式。
 - 写文章：src/content/posts/，复制一篇Markdown并修改标题、摘要、日期和标签。
 - 系列文章：series 指定系列名，seriesOrder 指定阅读序号，noteType 可用代码实操、实践记录、设计笔记、架构分析与开源研读；日期填写真实整理时间，更新时填写 modDatetime。
-- 修改项目名称、顺序与设计说明：src/data/projects.ts。当前归因分析第一、企业知识库第二。
+- 修改项目名称、顺序与设计说明：src/data/projects.ts。当前已验证的知识库原型第一、经营分析架构研读第二。
 - 修改亮点：每个项目的 highlights；修改案例：cases。案例包含用户问题、风险、设计选择、验证项和材料说明，会同步出现在首页与项目页。
 - 修改首页：src/pages/index.astro。
 - 修改个人介绍：src/content/pages/about.md。
@@ -22,9 +22,9 @@
 
 当前十篇依次记录项目原型、技术选型、检索排错、结构化切片、混合检索与精排、工作流边界、工具可靠性、评测、性能成本和重构。文章与入口脚本的映射在public/examples/agent-lab/article-map.json；早期文章链接通过src/pages/posts/[legacy].astro跳转到相应主题。
 
-下载包在public/examples/agent-lab.zip，源文件及运行记录在public/examples/agent-lab/。修改脚本时需要同步文章代码块，并实际重跑后更新verification.json和verified-output.txt；不能只改显示输出。标准库示例、LangGraph和MCP已执行验证，真实外部模型--live模式需使用自己的服务配置另行验证。
+下载包在public/examples/agent-lab.zip，源文件及运行记录在public/examples/agent-lab/。修改脚本时需要同步文章代码块，并实际重跑后更新verification.json和verified-output.txt；不能只改显示输出。当前标准库示例已重新执行验证；LangGraph 和 MCP 的早期记录保留在 verification.json 的 historicalVerification 中。本次未重新验证第三方框架或真实外部模型 --live 模式。
 
-archiveDatetime 是自定义归档日期，用于文章列表及归档页编排。pubDatetime 和 modDatetime 保留实际发布/整理与更新记录，供正文、订阅和结构化信息使用。自定义日期不代表文章当时已经发表。
+archiveDatetime 是历史归档字段，保留在旧文章元数据中；公开页面统一显示 pubDatetime / modDatetime 的真实发布、整理或更新时间，归档页按 pubDatetime 分组，系列顺序只用 seriesOrder。
 
 项目采用案例形式呈现业务问题、架构、可靠性设计与验证方法；参考架构、方案和实际实现范围分别说明。
 
@@ -43,3 +43,11 @@ archiveDatetime 是自定义归档日期，用于文章列表及归档页编排�
 简历下载文件为公开正文，维护附录不进入网站附件。
 
 基于 https://github.com/satnaing/astro-paper 修改，保留 LICENSE 中的原作者版权与 MIT 许可。
+
+## 展示与维护
+
+项目卡片与详情页显示真实实现状态。`src/data/projects.ts` 的 `deliverables` 维护成果链接，`results` 维护已运行的输入输出，`stages` 区分已验证部分与后续计划。不要把方案技术栈标成已实现成果。首页优先展示可运行的离线原型，网页简历与下载文件同步更新。
+
+发布前运行 `python3 -B public/examples/agent-lab/verify_examples.py --check-assets`，核查离线入口、检索边界、文章代码与下载包。GitHub Actions 也会先运行该检查，通过后才构建发布。
+
+公开简历以 `public/downloads/lucas-ai-resume.md` 为 PDF 内容源。安装 Python 的 `reportlab` 后运行 `python3 scripts/build-resume-pdf.py` 生成单页 PDF；系统需有可嵌入的中文字体，也可通过 `RESUME_CJK_FONT` 指定。修改后重新渲染检查版式，并同步网页简历。

@@ -18,6 +18,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+      - name: Verify offline examples and downloadable assets
+        run: python3 public/examples/agent-lab/verify_examples.py --check-assets
       - name: Build Astro and search index
         uses: withastro/action@v6
         with:
