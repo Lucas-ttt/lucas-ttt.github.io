@@ -3,11 +3,13 @@ import type { GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
 import Main from "@/components/Main.astro";
 import Card from "@/components/Card.astro";
 import Footer from "@/components/Footer.astro";
 import Pagination from "@/components/Pagination.astro";
 import { getReadingPosts } from "@/utils/getReadingPosts";
+import NoteSeriesIntro from "@/components/NoteSeriesIntro.astro";
 import config from "@/config";
 
 export const getStaticPaths = (async ({ paginate }) => {
@@ -19,12 +21,15 @@ const { page } = Astro.props;
 
 ---
 
-<Layout title={`技术文章 | ${config.site.title}`}>
+<Layout title={`工程笔记 | ${config.site.title}`}>
   <Header />
 
-  <Main pageTitle="技术文章" pageDesc="记录知识库开发中的检索、评测与工具调用。每篇附可复现的代码或结果。" class="pt-8 sm:pt-12">
-    <ul id="series" class="scroll-mt-4">
-      {page.data.map(data => <Card {...data} compact />)}
+  <Breadcrumb />
+
+  <Main pageTitle="工程笔记" pageDesc="从知识库原型到检索、执行与评测，分享实现过程、代码实验和工程取舍。">
+    <NoteSeriesIntro count={page.total} />
+    <ul>
+      {page.data.map(data => <Card {...data} />)}
     </ul>
   </Main>
 

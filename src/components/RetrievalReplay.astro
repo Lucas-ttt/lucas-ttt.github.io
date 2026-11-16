@@ -2,11 +2,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-interface Props {
-  compact?: boolean;
-}
-const { compact = false } = Astro.props;
-
 type ReplayCase = {
   id: string;
   query: string;
@@ -34,39 +29,25 @@ const labels: Record<string, { option: string; result: string }> = {
   context_dropped: { option: "故障 · 命中后丢失", result: "命中的证据没有进入上下文" },
 };
 const formatIds = (ids: string[]) => ids.length ? ids.join("、") : "空";
-const cases = compact
-  ? report.cases.filter(item => item.status !== "injected_failure")
-  : report.cases;
 ---
 
-<div class:list={["replay", { compact }]} data-retrieval-replay>
+<div class="replay" data-retrieval-replay>
   <div class="replay-intro">
-    {compact ? (
-      <p class="demo-input"><span>错误码</span> <code>E102</code></p>
-    ) : (
-      <div>
-        <h3>回放一次检索</h3>
-        <p>切换产品版本或注入故障，查看证据在哪一步丢失。结果由配套 Python 脚本生成。</p>
-      </div>
-    )}
+    <div>
+      <h3>回放一次检索</h3>
+      <p>切换产品版本或注入故障，查看证据在哪一步丢失。结果由配套 Python 脚本生成。</p>
+    </div>
     <label class="scenario">
-      {compact ? "产品版本" : "场景"}
+      场景
       <select data-scenario disabled>
-        {cases.map(item => <option value={item.id}>{compact ? item.version : labels[item.id].option}</option>)}
+        {report.cases.map(item => <option value={item.id}>{labels[item.id].option}</option>)}
       </select>
     </label>
   </div>
 
   <div aria-live="polite" aria-atomic="true">
-    {cases.map((item, index) => (
+    {report.cases.map((item, index) => (
       <div class="run" data-run={item.id} hidden={index !== 0}>
-        {compact ? (
-          <>
-            <p class="result">{item.expected_ids.map(id => report.sources[id].text).join(" ") || item.answer}</p>
-            <p class="source-id">{item.expected_ids.length ? `证据 ${formatIds(item.expected_ids)}` : "证据为空"}</p>
-          </>
-        ) : (
-          <>
         <p class="query"><span>输入</span> <code>{item.query}</code> <span>产品</span> <code>{item.version}</code></p>
         <p class:list={["result", { fault: item.status === "injected_failure" }]}>{labels[item.id].result}</p>
         <dl class="steps">
@@ -87,10 +68,12 @@ const cases = compact
           </details>
         )}
         <p class="command">本地复现 <code>python replay_cases.py --case {item.id}</code></p>
-          </>
-        )}
       </div>
     ))}
+  </div>
+  <div class="links">
+    <a href="/examples/agent-lab.zip" download>下载 Python 复现包</a>
+    <a href="/examples/agent-lab/replay_cases.json">查看运行数据</a>
   </div>
 </div>
 
@@ -135,13 +118,6 @@ const cases = compact
   blockquote { font-size: .86rem; margin: .35rem 0; padding-left: .75rem; border-left: 2px solid var(--accent); }
   .command { overflow-wrap: anywhere; }
   .command code { display: block; margin-top: .24rem; }
-  .compact { margin: 1rem 0; padding: .9rem; }
-  .compact .replay-intro { align-items: center; gap: .55rem 1rem; }
-  .compact .scenario { display: flex; align-items: center; gap: .45rem; }
-  .compact .scenario select { min-height: 40px; }
-  .compact .demo-input { margin: 0; }
-  .demo-input code { font-weight: 700; color: var(--foreground); }
-  .compact .run { margin-top: .65rem; padding: .7rem .8rem; }
-  .compact .result { font-size: .94rem; line-height: 1.55; margin: 0 0 .35rem; }
-  .source-id { font: .77rem/1.4 ui-monospace, monospace; color: var(--muted-foreground); margin: 0; }
+  .links { display: flex; flex-wrap: wrap; gap: .6rem 1rem; margin-top: .9rem; font-size: .82rem; }
+  .links a { color: var(--accent); text-decoration: underline; text-underline-offset: .2em; }
 </style>

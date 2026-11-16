@@ -40,16 +40,16 @@ curl -s http://127.0.0.1:8765/query -H 'Content-Type: application/json' -d '{"qu
 
 | 顺序 | 实践主题 | 入口文件 |
 | --- | --- | --- |
-| 01 | 知识库原型与版本检索 | project_walkthrough.py |
-| 02 | RAG 与长上下文的选型 | route_policy.py |
-| 03 | 检索漏检排查 | retrieval_trace.py |
-| 04 | 文档切片与表格保留 | structured_chunking.py |
-| 05 | 混合检索与精排 | hybrid_rerank.py |
-| 06 | 工作流与 Agent 的取舍 | workflow_agent.py |
-| 07 | 工具调用的重试与幂等 | tool_safety.py |
-| 08 | 用字段别名修复漏检 | rag_evaluation.py |
-| 09 | 请求耗时与成本优化 | latency_cost.py |
-| 10 | 知识库重构与证据校验 | redesign_contracts.py |
+| 01 | 从排障资料到可回查答案：我的知识库原型实践 | project_walkthrough.py |
+| 02 | 我为什么给知识库选择 RAG，也保留长上下文和业务接口 | route_policy.py |
+| 03 | 原文有答案却没有命中：我怎样沿检索链路定位问题 | retrieval_trace.py |
+| 04 | 我如何拆分手册：保住表头、长段落和跨段条件 | structured_chunking.py |
+| 05 | 从精确匹配到候选精排：我的混合检索实验 | hybrid_rerank.py |
+| 06 | 先固定流程，再开放决策：我对 Workflow 和 Agent 的取舍 | workflow_agent.py |
+| 07 | 把工具失败拆开处理：参数校验、有限重试与幂等 | tool_safety.py |
+| 08 | 我给知识库建立了一份可复查的评测记录 | rag_evaluation.py |
+| 09 | 先拆开耗时，再决定缓存和预算：我的性能成本实验 | latency_cost.py |
+| 10 | 如果重做知识库，我会先统一请求、证据与执行契约 | redesign_contracts.py |
 
 ## 运行
 
