@@ -1,0 +1,541 @@
+{
+  "corpus_size": 3,
+  "top_k": 2,
+  "method": "同一索引与版本过滤，词项基线无结果才按导入缺列语境扩展一个字段词项",
+  "scope": "三份自编短手册上的人工小样本。原评测已看过，新对照和词表由同一作者设计。",
+  "metric": "证据 ID 集合与人工标注完全一致且无错版本时计为通过。应为空样例单独统计。",
+  "groups": [
+    {
+      "label": "原评测回归组",
+      "baseline": {
+        "passed": 9,
+        "total": 10,
+        "wrong_version": 0,
+        "expected_empty": 3,
+        "correct_empty": 3
+      },
+      "improved": {
+        "passed": 10,
+        "total": 10,
+        "wrong_version": 0,
+        "expected_empty": 3,
+        "correct_empty": 3
+      },
+      "cases": [
+        {
+          "id": "d1",
+          "query": "E102",
+          "version": "v2",
+          "expected_ids": [
+            "csv-v2"
+          ],
+          "baseline": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "d2",
+          "query": "E201",
+          "version": "v2",
+          "expected_ids": [
+            "encoding-v2"
+          ],
+          "baseline": {
+            "ids": [
+              "encoding-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "encoding-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "d3",
+          "query": "customer_id UTF-8",
+          "version": "v2",
+          "expected_ids": [
+            "csv-v2",
+            "encoding-v2"
+          ],
+          "baseline": {
+            "ids": [
+              "encoding-v2",
+              "csv-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "encoding-v2",
+              "csv-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "h1",
+          "query": "E102",
+          "version": "v1",
+          "expected_ids": [
+            "csv-v1"
+          ],
+          "baseline": {
+            "ids": [
+              "csv-v1"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v1"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "h2",
+          "query": "上传时找不到客户字段",
+          "version": "v2",
+          "expected_ids": [
+            "csv-v2"
+          ],
+          "baseline": {
+            "ids": [],
+            "passed": false,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": {
+            "alias": "客户字段",
+            "field": "customer_id"
+          }
+        },
+        {
+          "id": "h3",
+          "query": "E102",
+          "version": "v9",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "h4",
+          "query": "退款",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "h5",
+          "query": "E102 E201",
+          "version": "v2",
+          "expected_ids": [
+            "csv-v2",
+            "encoding-v2"
+          ],
+          "baseline": {
+            "ids": [
+              "csv-v2",
+              "encoding-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v2",
+              "encoding-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "h6",
+          "query": "UTF-8",
+          "version": "v1",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "h7",
+          "query": "UTF-8 文件编码",
+          "version": "v2",
+          "expected_ids": [
+            "encoding-v2"
+          ],
+          "baseline": {
+            "ids": [
+              "encoding-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "encoding-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        }
+      ]
+    },
+    {
+      "label": "新人工对照组",
+      "baseline": {
+        "passed": 8,
+        "total": 14,
+        "wrong_version": 0,
+        "expected_empty": 9,
+        "correct_empty": 7
+      },
+      "improved": {
+        "passed": 11,
+        "total": 14,
+        "wrong_version": 0,
+        "expected_empty": 9,
+        "correct_empty": 7
+      },
+      "cases": [
+        {
+          "id": "c01",
+          "query": "导入表格时，提示缺少客户编号",
+          "version": "v2",
+          "expected_ids": [
+            "csv-v2"
+          ],
+          "baseline": {
+            "ids": [],
+            "passed": false,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": {
+            "alias": "客户编号",
+            "field": "customer_id"
+          }
+        },
+        {
+          "id": "c02",
+          "query": "上传模板后显示客户标识缺失",
+          "version": "v2",
+          "expected_ids": [
+            "csv-v2"
+          ],
+          "baseline": {
+            "ids": [],
+            "passed": false,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": {
+            "alias": "客户标识",
+            "field": "customer_id"
+          }
+        },
+        {
+          "id": "c03",
+          "query": "导入文件时找不到用户编号",
+          "version": "v1",
+          "expected_ids": [
+            "csv-v1"
+          ],
+          "baseline": {
+            "ids": [],
+            "passed": false,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v1"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": {
+            "alias": "用户编号",
+            "field": "user_id"
+          }
+        },
+        {
+          "id": "c04",
+          "query": "导入后提示客户那列没了",
+          "version": "v2",
+          "expected_ids": [
+            "csv-v2"
+          ],
+          "baseline": {
+            "ids": [],
+            "passed": false,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": false,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c05",
+          "query": "上传时找不到客户编号",
+          "version": "v1",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c06",
+          "query": "导入时缺少客户标识",
+          "version": "v9",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c07",
+          "query": "上传时并不是缺少客户字段",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c08",
+          "query": "退款申请时找不到客户编号",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c09",
+          "query": "客户标识是什么意思",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c10",
+          "query": "上传 E10 时找不到客户字段",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c11",
+          "query": "上传 id 后找不到客户字段",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c12",
+          "query": "E102 E201",
+          "version": "v1",
+          "expected_ids": [
+            "csv-v1"
+          ],
+          "baseline": {
+            "ids": [
+              "csv-v1"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v1"
+            ],
+            "passed": true,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c13",
+          "query": "导入 E10 时找不到客户字段",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": false,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": false,
+            "wrong_version": false
+          },
+          "expansion": null
+        },
+        {
+          "id": "c14",
+          "query": "导入 id 找不到客户字段",
+          "version": "v2",
+          "expected_ids": [],
+          "baseline": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": false,
+            "wrong_version": false
+          },
+          "improved": {
+            "ids": [
+              "csv-v2"
+            ],
+            "passed": false,
+            "wrong_version": false
+          },
+          "expansion": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-验证于 2026-11-08 · Python 3.14.3 · Darwin
+验证于 2026-11-16 · Python 3.12.14 · Windows
 
 
 # 本次标准库复验
@@ -75,9 +75,9 @@ top_k=2 holdout {"passed": "6/7", "recall_macro": 0.75, "precision_macro": 0.75,
 计时说明 elapsed_ms逐条记录检索调用，不包含索引和模型；重复运行会变化
 
 $ python latency_cost.py
-baseline {"cache_hit": false, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 2.345, "retrieve": 7.093, "rerank": 3.397, "generate": 15.022}, "total_ms": 27.866}
-cached {"cache_hit": true, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 2.296, "retrieve": 0.003, "rerank": 0.0, "generate": 15.048}, "total_ms": 17.359}
-reduced {"cache_hit": true, "ids": ["csv-v2"], "status": "ok", "quality_ok": false, "usage": {"input_tokens": 240, "output_tokens": 40}, "estimated_yuan": 0.0008, "stage_ms": {"parse": 2.296, "retrieve": 0.002, "rerank": 0.0, "generate": 12.047}, "total_ms": 14.357}
+baseline {"cache_hit": false, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 4.501, "retrieve": 12.463, "rerank": 5.378, "generate": 18.391}, "total_ms": 40.754}
+cached {"cache_hit": true, "ids": ["csv-v2", "encoding-v2"], "status": "ok", "quality_ok": true, "usage": {"input_tokens": 320, "output_tokens": 80}, "estimated_yuan": 0.00128, "stage_ms": {"parse": 6.408, "retrieve": 0.002, "rerank": 0.0, "generate": 18.064}, "total_ms": 24.489}
+reduced {"cache_hit": true, "ids": ["csv-v2"], "status": "ok", "quality_ok": false, "usage": {"input_tokens": 240, "output_tokens": 40}, "estimated_yuan": 0.0008, "stage_ms": {"parse": 5.78, "retrieve": 0.002, "rerank": 0.0, "generate": 12.224}, "total_ms": 18.024}
 版本变化 cache_hit False
 范围变化 cache_hit False
 修订变化 cache_hit False
@@ -125,6 +125,41 @@ $ python citation_checks.py
 错误建议的 ID 检查: 通过
 仍需核查: 请在 CSV 表头添加 user_id ；v2 原文要求 customer_id
 
+$ python replay_cases.py --check
+PASS 5 replay scenarios
+
+$ python retrieval_iteration.py --check
+原评测回归组 通过 9/10 → 10/10
+别名补召回后错版本 0，应空 3/3
+h2 上传时找不到客户字段 [] → ['csv-v2'] 预期 ['csv-v2']
+新人工对照组 通过 8/14 → 11/14
+别名补召回后错版本 0，应空 7/9
+c01 导入表格时，提示缺少客户编号 [] → ['csv-v2'] 预期 ['csv-v2']
+c02 上传模板后显示客户标识缺失 [] → ['csv-v2'] 预期 ['csv-v2']
+c03 导入文件时找不到用户编号 [] → ['csv-v1'] 预期 ['csv-v1']
+c04 导入后提示客户那列没了 [] → [] 预期 ['csv-v2']
+c13 导入 E10 时找不到客户字段 ['csv-v2'] → ['csv-v2'] 预期 []
+c14 导入 id 找不到客户字段 ['csv-v2'] → ['csv-v2'] 预期 []
+
+$ python refund_reconciliation.py --check
+PASS refund totals, date boundary, channel deltas, and read-only write rejection
+
+$ python test_answer_service.py
+
+
+test_accepts_completion_with_citations_from_current_evidence (__main__.AnswerServiceTests.test_accepts_completion_with_citations_from_current_evidence) ... ok
+test_extracts_version_specific_evidence_and_health (__main__.AnswerServiceTests.test_extracts_version_specific_evidence_and_health) ... ok
+test_malformed_completion_and_upstream_rejection_return_source (__main__.AnswerServiceTests.test_malformed_completion_and_upstream_rejection_return_source) ... ok
+test_model_timeout_returns_source (__main__.AnswerServiceTests.test_model_timeout_returns_source) ... ok
+test_no_evidence_never_calls_model (__main__.AnswerServiceTests.test_no_evidence_never_calls_model) ... ok
+test_rejects_invalid_requests_before_model_call (__main__.AnswerServiceTests.test_rejects_invalid_requests_before_model_call) ... ok
+test_rejects_wrong_version_reference_and_returns_source (__main__.AnswerServiceTests.test_rejects_wrong_version_reference_and_returns_source) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.517s
+
+OK
+
 $ python verify_examples.py
 test_empty_index_does_not_silently_rebuild (__main__.RetrievalRegression.test_empty_index_does_not_silently_rebuild) ... ok
 test_error_code_and_field_fragments_do_not_become_evidence (__main__.RetrievalRegression.test_error_code_and_field_fragments_do_not_become_evidence) ... ok
@@ -136,7 +171,7 @@ test_project_and_tool_share_all_evaluation_results (__main__.RetrievalRegression
 test_tool_preserves_public_schema_and_result_isolation (__main__.RetrievalRegression.test_tool_preserves_public_schema_and_result_isolation) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 0.022s
+Ran 8 tests in 0.159s
 
 OK
 

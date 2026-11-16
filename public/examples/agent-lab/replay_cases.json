@@ -1,0 +1,131 @@
+{
+  "cases": [
+    {
+      "id": "v2",
+      "query": "E102",
+      "version": "v2",
+      "status": "ok",
+      "expected_ids": [
+        "csv-v2"
+      ],
+      "answer": "CSV 导入缺少 customer_id 列，检查首行表头。 [来源 csv-v2]",
+      "trace": {
+        "version_ids": [
+          "csv-v2",
+          "encoding-v2"
+        ],
+        "hit_ids": [
+          "csv-v2"
+        ],
+        "context_ids": [
+          "csv-v2"
+        ],
+        "first_failed_stage": null
+      }
+    },
+    {
+      "id": "v1",
+      "query": "E102",
+      "version": "v1",
+      "status": "ok",
+      "expected_ids": [
+        "csv-v1"
+      ],
+      "answer": "CSV 导入缺少 user_id 列，检查首行表头。 [来源 csv-v1]",
+      "trace": {
+        "version_ids": [
+          "csv-v1"
+        ],
+        "hit_ids": [
+          "csv-v1"
+        ],
+        "context_ids": [
+          "csv-v1"
+        ],
+        "first_failed_stage": null
+      }
+    },
+    {
+      "id": "v9",
+      "query": "E102",
+      "version": "v9",
+      "status": "insufficient_evidence",
+      "expected_ids": [],
+      "answer": "当前资料未找到适用依据。",
+      "trace": {
+        "version_ids": [],
+        "hit_ids": [],
+        "context_ids": [],
+        "first_failed_stage": null
+      }
+    },
+    {
+      "id": "wrong_version",
+      "query": "customer_id",
+      "version": "v2",
+      "status": "injected_failure",
+      "expected_ids": [
+        "csv-v2"
+      ],
+      "answer": "本次上下文没有保留预期证据。",
+      "trace": {
+        "fault": "wrong_version",
+        "source_has_field": true,
+        "indexed": true,
+        "version_ids": [
+          "encoding-v2"
+        ],
+        "hit_ids": [],
+        "context_ids": [],
+        "first_failed_stage": "metadata_filter"
+      }
+    },
+    {
+      "id": "context_dropped",
+      "query": "customer_id",
+      "version": "v2",
+      "status": "injected_failure",
+      "expected_ids": [
+        "csv-v2"
+      ],
+      "answer": "本次上下文没有保留预期证据。",
+      "trace": {
+        "fault": "context_dropped",
+        "source_has_field": true,
+        "indexed": true,
+        "version_ids": [
+          "csv-v2",
+          "encoding-v2"
+        ],
+        "hit_ids": [
+          "csv-v2"
+        ],
+        "context_ids": [],
+        "first_failed_stage": "context_assembly"
+      }
+    }
+  ],
+  "sources": {
+    "csv-v1": {
+      "id": "csv-v1",
+      "version": "v1",
+      "error_code": "E102",
+      "text": "CSV 导入缺少 user_id 列，检查首行表头。",
+      "source": "demo/csv-v1.md"
+    },
+    "csv-v2": {
+      "id": "csv-v2",
+      "version": "v2",
+      "error_code": "E102",
+      "text": "CSV 导入缺少 customer_id 列，检查首行表头。",
+      "source": "demo/csv-v2.md"
+    },
+    "encoding-v2": {
+      "id": "encoding-v2",
+      "version": "v2",
+      "error_code": "E201",
+      "text": "文件应使用 UTF-8 编码，避免出现乱码。",
+      "source": "demo/encoding-v2.md"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+---
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+type Window = { amount_cents: number; start_inclusive: string; end_exclusive: string };
+const report: {
+  dataset: string;
+  periods: { previous: Window; current: Window };
+  change_cents: number;
+  channel_changes: { channel: string; change_cents: number }[];
+  counterexample: {
+    periods: { current: Window };
+    change_cents: number;
+    change_error_cents: number;
+    omitted_current_ids: string[];
+    extra_current_ids: string[];
+  };
+  checks: { write_rejected: string };
+} = JSON.parse(readFileSync(resolve("public/examples/agent-lab/refund_reconciliation_results.json"), "utf8"));
+const amount = (cents: number) => new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY", maximumFractionDigits: 2, minimumFractionDigits: 0 }).format(cents / 100);
+const change = (cents: number) => (cents > 0 ? "+" : "") + amount(cents);
+const { previous, current } = report.periods;
+const windowLabel = (window: Window) => window.start_inclusive.slice(5, 10) + " 至 " + window.end_exclusive.slice(5, 10) + "（不含）";
+---
+<div class="refund" id="refund-reconciliation">
+  <h3>两期退款对账实验</h3>
+  <p>{report.dataset} · 按成功时间统计成功退款 · 上海时间 · 两个等长 7 日窗口</p>
+  <dl class="totals">
+    <div><dt>{windowLabel(previous)}</dt><dd>{amount(previous.amount_cents)}</dd></div>
+    <div><dt>{windowLabel(current)}</dt><dd>{amount(current.amount_cents)}</dd></div>
+    <div><dt>变化金额</dt><dd>{change(report.change_cents)}</dd></div>
+  </dl>
+  <ul aria-label="各渠道贡献金额">
+    {report.channel_changes.map(row => <li>{row.channel} <strong>{change(row.change_cents)}</strong></li>)}
+  </ul>
+  <details>
+    <summary>复查申请时间带来的偏差</summary>
+    <p>改用申请时间后，本期金额变为 {amount(report.counterexample.periods.current.amount_cents)}，两期只差 {change(report.counterexample.change_cents)}。漏计 {report.counterexample.omitted_current_ids.join("、")}，误纳 {report.counterexample.extra_current_ids.join("、")}，变化少算 {amount(Math.abs(report.counterexample.change_error_cents))}。</p>
+  </details>
+  <p>渠道金额和总额通过独立汇总对账。测试写入被 SQLite 拒绝，返回 <code>{report.checks.write_rejected}</code>。</p>
+  <p class="run"><code>python refund_reconciliation.py</code></p>
+  <div class="links">
+    <a href="/examples/agent-lab/refund_reconciliation_results.json" download>下载原始流水和结果</a>
+    <a href="/examples/agent-lab/refund_reconciliation.py" download>下载复现脚本</a>
+  </div>
+</div>
+<style>
+  .refund { border: 1px solid var(--border); border-radius: .6rem; padding: clamp(1rem, 4vw, 1.6rem); margin: 1.25rem 0; background: var(--muted); }
+  h3 { margin: 0 0 .4rem; font-size: 1.15rem; }
+  p, ul, summary { font-size: .85rem; }
+  .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: .6rem; margin: 1rem 0; }
+  .totals > div { border: 1px solid var(--border); border-radius: .35rem; padding: .65rem; background: var(--background); }
+  dt { font-size: .76rem; color: var(--muted-foreground); }
+  dd { margin: .3rem 0 0; font: 650 1.25rem/1.4 ui-monospace, monospace; color: var(--accent); }
+  ul, .links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin: .7rem 0; padding: 0; list-style: none; }
+  details { border-top: 1px solid var(--border); margin: .7rem 0; padding-top: .65rem; }
+  summary { cursor: pointer; color: var(--accent); }
+  details p { margin-top: .4rem; }
+  .run { margin: .7rem 0; overflow-wrap: anywhere; }
+  a { font-size: .83rem; color: var(--accent); text-decoration: underline; text-underline-offset: .2em; }
+</style>

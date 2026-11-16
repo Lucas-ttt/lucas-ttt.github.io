@@ -1,0 +1,47 @@
+---
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+type Metrics = { passed: number; total: number; wrong_version: number; correct_empty: number; expected_empty: number };
+type Comparison = {
+  label: string;
+  baseline: Metrics;
+  improved: Metrics;
+  cases: { id: string; query: string; improved: { ids: string[] } }[];
+};
+const report: { groups: Comparison[] } = JSON.parse(
+  readFileSync(resolve("public/examples/agent-lab/retrieval_iteration_results.json"), "utf8"),
+);
+const repaired = report.groups.flatMap(group => group.cases).find(item => item.id === "h2");
+---
+<div class="iteration" id="retrieval-iteration">
+  <h3>复测一次口语改写漏检</h3>
+  {repaired && <p>「{repaired.query}」原先返回空。在导入缺列语境下，字段别名补召回命中 <code>{repaired.improved.ids.join("、")}</code>。</p>}
+  <dl>
+    {report.groups.map(group => (
+      <div>
+        <dt>{group.label}</dt>
+        <dd>{group.baseline.passed}/{group.baseline.total} → {group.improved.passed}/{group.improved.total}</dd>
+        <p>错版本 {group.improved.wrong_version} · 应为空的请求通过 {group.improved.correct_empty}/{group.improved.expected_empty}</p>
+      </div>
+    ))}
+  </dl>
+  <p>「导入后提示客户那列没了」仍未命中。另两条带 E10 或 id 的混合输入仍因「导入」一词误召。通过标准是证据 ID 集合与人工标注一致，样例来自三份自编手册。</p>
+  <p class="run"><code>python retrieval_iteration.py --check</code></p>
+  <div class="links">
+    <a href="/examples/agent-lab/retrieval_iteration_results.json" download>下载逐条评测</a>
+    <a href="/posts/rag-evaluation-records/#alias-retrieval">阅读改进记录</a>
+  </div>
+</div>
+<style>
+  .iteration { border: 1px solid var(--border); border-radius: .6rem; padding: clamp(1rem, 4vw, 1.6rem); margin: 1.25rem 0; }
+  h3 { font-size: 1.1rem; margin: 0 0 .45rem; }
+  p, dt { font-size: .85rem; }
+  dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .7rem; margin: 1rem 0; }
+  dl > div { background: var(--muted); border: 1px solid var(--border); border-radius: .35rem; padding: .7rem; }
+  dd { color: var(--accent); margin: .3rem 0; font: 650 1.2rem/1.4 ui-monospace, monospace; }
+  dl p { color: var(--muted-foreground); font-size: .76rem; }
+  .run { margin: .6rem 0; overflow-wrap: anywhere; }
+  .links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; font-size: .83rem; }
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: .2em; }
+</style>

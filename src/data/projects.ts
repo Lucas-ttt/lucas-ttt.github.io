@@ -41,7 +41,6 @@ export interface Project {
   summary: string;
   deliverables: { label: string; href: string; description: string }[];
   reproduce?: string;
-  results?: { input: string; output: string; detail: string }[];
   highlights: ProjectModule[];
   cases: ProjectCaseStudy[];
   tags: string[];
@@ -64,11 +63,11 @@ export const projects: Project[] = [
     slug: "support-knowledge-base",
     number: "01",
     title: "企业技术支持知识库",
-    subtitle: "带版本约束的离线知识检索原型",
-    category: "离线检索原型",
-    status: "离线原型 · 已验证",
+    subtitle: "带版本约束的知识检索与本地问答接口",
+    category: "知识检索与问答",
+    status: "离线检索与本地接口 · 已复验",
     statusDetail:
-      "已验证三份自编资料的读取、切片、词项检索与版本过滤；输出为原文抽取，真实模型与在线服务待接入。",
+      "三份自编资料可复现版本过滤和原文提取。本地接口已验证无依据与模型超时回落，生成分支使用模型替身。",
     summary:
       "用 Python 复现同一错误码在不同版本下的处理差异，返回适用原文与来源，并用固定小样本检查命中、空结果和失败。",
     deliverables: [
@@ -84,31 +83,18 @@ export const projects: Project[] = [
         description: "保留实际输入输出与小样本评测结果，可以对照脚本重新运行。",
       },
       {
+        label: "查看本地问答代码",
+        href: "/examples/agent-lab/answer_service.py",
+        description: "POST /query 返回版本证据、状态和分段耗时，支持由本机配置兼容模型服务。",
+      },
+      {
         label: "下载复现示例",
         href: "/examples/agent-lab.zip",
         description:
           "Python 离线示例、运行说明与验证记录；核心原型不需要密钥和外部服务。",
       },
     ],
-    reproduce: "python project_walkthrough.py\npython rag_evaluation.py",
-    results: [
-      {
-        input: "E102 · 产品 v2",
-        output: "检查 customer_id 列",
-        detail: "返回 csv-v2 的实际原文与来源；状态为 ok。",
-      },
-      {
-        input: "E102 · 产品 v1",
-        output: "检查 user_id 列",
-        detail: "同一错误码只返回 csv-v1，不混用新版本资料。",
-      },
-      {
-        input: "E102 · 未收录的 v9",
-        output: "当前资料未找到适用依据",
-        detail:
-          "证据列表为空，状态为 insufficient_evidence，不借用其他版本补齐。",
-      },
-    ],
+    reproduce: "python replay_cases.py --case wrong_version\npython retrieval_iteration.py --check",
     highlights: [
       {
         title: "同一错误码，按版本返回依据",
@@ -224,7 +210,7 @@ export const projects: Project[] = [
       {
         title: "来源有效不等于生成答案正确",
         description:
-          "当前结果直接来自命中原文，可以回查证据 ID 与来源。真实模型生成尚未接入，开放文本的语义支持和引用正确性还需另行验证。",
+          "默认结果直接摘取命中原文。生成路径检查引用 ID 是否属于本轮证据，真实模型的语义支持仍需实测。",
       },
       {
         title: "让小样本结论保持边界",
@@ -246,16 +232,28 @@ export const projects: Project[] = [
           "十条人工问题中，Top-K=2 开发样例通过 3/3、留出样例通过 6/7；口语改写仍未命中，保留失败记录。",
       },
       {
-        name: "真实向量检索与在线接口",
+        name: "本地问答接口",
+        status: "已验证",
+        evidence:
+          "本机测试覆盖正常原文、无依据退出、引用 ID 校验、生成故障及超时回落。生成分支使用受控 HTTP 替身。",
+      },
+      {
+        name: "独立检索改进对照",
+        status: "已验证",
+        evidence:
+          "受限字段别名在三份自编手册上补回已知漏检，逐条保留新对照结果和未解决的口语表达。",
+      },
+      {
+        name: "真实向量检索与公开服务",
         status: "待实现",
         evidence:
-          "待接入真实 Embedding、Chroma 等持久化索引与 FastAPI，检查新增资料、重复导入和检索结果。",
+          "待验证真实 Embedding、持久化索引、新增资料及公开在线请求。",
       },
       {
         name: "真实生成与服务边界",
         status: "待实现",
         evidence:
-          "待接入 LLM，验证生成引用的支持关系、会话隔离、超时反馈与端到端质量。",
+          "待用真实 LLM 验证生成语义、会话隔离和端到端质量。",
       },
     ],
     acceptance: [
@@ -271,19 +269,24 @@ export const projects: Project[] = [
     slug: "attribution-analysis",
     number: "02",
     title: "归因分析系统",
-    subtitle: "电商经营分析的架构研读与改造方案",
+    subtitle: "电商经营分析架构研读与退款对账实验",
     category: "架构研读与改造方案",
-    status: "架构研读 · 待复现",
+    status: "独立退款实验 · 已验证",
     statusDetail:
-      "已获得并研读参考代码；本人尚未运行、改造或验收，不作为已完成项目成果。",
+      "已运行自编数据上的 SQLite 退款对账。完整电商系统仍处于参考架构研读阶段。",
     summary:
       "面向电商退款与经营指标分析，基于参考架构设计自然语言取数和报告核查流程。用一致的指标口径解释变化，并为纠错后的 SQL 设置执行检查点。",
     deliverables: [
       {
+        label: "查看退款对账",
+        href: "/projects/attribution-analysis/#refund-reconciliation",
+        description: "两期同长度窗口按成功时间对账，复现误用申请时间和只读写入拒绝。",
+      },
+      {
         label: "查看改造方案",
         href: "/projects/attribution-analysis/#cases",
         description:
-          "退款口径与 SQL 纠错后复验的设计推演；尚无本人运行或改造后的系统成果。",
+          "完整经营分析的退款口径与 SQL 纠错后复验方案。",
       },
     ],
     highlights: [
@@ -410,6 +413,12 @@ export const projects: Project[] = [
       },
     ],
     stages: [
+      {
+        name: "合成退款数据对账",
+        status: "已验证",
+        evidence:
+          "退款 250 元增至 300 元，渠道变化合计 50 元。误用申请时间少算 30 元，SQLite 只读连接拒绝写入。",
+      },
       {
         name: "参考架构与业务流程",
         status: "参考已有",

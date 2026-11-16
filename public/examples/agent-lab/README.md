@@ -2,7 +2,41 @@
 
 配套文章：https://lucas-ttt.github.io/posts/
 
-当前十篇围绕同一个知识库原型，记录场景、选型、排错、切片、混合检索、执行编排、工具可靠性、评测、性能成本和重构。所有当前入口只用 Python 3.12 及以上版本的标准库，不需要模型密钥或网络；本次复验环境为 Python 3.14.3。
+当前十篇围绕同一个知识库原型，记录场景、选型、排错、切片、混合检索、执行编排、工具可靠性、评测、性能成本和重构。当前示例支持 Python 3.12 和更新版本，仅使用标准库。
+
+## 作品集快速复现
+
+下载 ZIP 后解压，在 `agent-lab` 目录打开终端。下列三个命令无需密钥或外部网络。
+
+```sh
+python replay_cases.py --case wrong_version
+python retrieval_iteration.py --check
+python refund_reconciliation.py --check
+```
+
+第一项会显示预期证据 `csv-v2` 及首个失败阶段 `metadata_filter`。改用 `--case context_dropped` 可看到检索命中、上下文为空。第二项检查别名补召回的逐条结果，第三项复核两期退款、渠道差额及只读写入拒绝。
+
+## 本地问答接口
+
+在第一个终端启动服务。默认监听 `127.0.0.1:8765`，使用词项基线返回原文。
+
+```sh
+python answer_service.py
+```
+
+在第二个终端查询。v2 会带回 `csv-v2`，将版本改为 v9 会得到 `insufficient_evidence`。
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8765/query -Method Post -ContentType 'application/json' -Body '{"query":"E102","version":"v2"}'
+```
+
+```bash
+curl -s http://127.0.0.1:8765/query -H 'Content-Type: application/json' -d '{"query":"E102","version":"v2"}'
+```
+
+如需连接兼容聊天模型，启动前配置 `SUPPORT_CHAT_URL` 为完整的聊天补全地址和 `SUPPORT_CHAT_MODEL` 为模型名。需认证时通过环境变量 `SUPPORT_CHAT_API_KEY` 提供密钥。`SUPPORT_CHAT_TIMEOUT` 单位为秒，默认 5 秒。返回结果包含请求编号、证据、分段耗时，以及模型响应中可用的用量。
+
+`python test_answer_service.py` 用本机受控 HTTP 端点验证正常返回、无证据、参数错误、合法引用、错引、模型出错与超时回落。引用检查覆盖 ID 与本次证据的对应关系。真实模型的回答质量仍需独立验证。
 
 | 顺序 | 实践主题 | 入口文件 |
 | --- | --- | --- |
@@ -25,7 +59,7 @@
 python project_walkthrough.py # 实际读取临时演示资料、建立词项索引并输出适用原文。
 python rag_evaluation.py # 读取同一原型的候选并记录人工预期的命中与失败。
 python latency_cost.py # 观察真实本机计时；模拟等待与用量不能代表线上性能。
-python verify_examples.py # 一次运行十个入口、四个工具实验与八组边界回归。
+python verify_examples.py # 复验文章示例、工具回归、作品集回放和本机问答。
 ```
 
 第03、08、09篇导入 project_walkthrough.py；第06、07篇复用 knowledge_tool.py。工具现在通过薄包装调用同一个 retrieve 入口，英文字段名与错误码按完整词项匹配，中文仍采用子串基线。`E102` 能命中适用资料，`E10` 和 `id` 不再作为对应错误码或字段的证据。请保留整个目录，避免遗漏依赖文件。
@@ -40,7 +74,7 @@ python verify_examples.py # 一次运行十个入口、四个工具实验与八�
 python3 public/examples/agent-lab/verify_examples.py --check-assets
 ```
 
-修改示例后，先在本目录运行 `python verify_examples.py --record`，再用源目录的全部文件重新生成 `public/examples/agent-lab.zip`，最后执行上述仓库检查。打包时排除 `__pycache__` 与 `.pyc` 文件。CI 只复验，不改写记录；任何入口失败、文章代码不同步或 ZIP 过期都会阻止发布。
+修改示例后，在本目录运行 `python verify_examples.py --record`。从仓库根目录运行 `python scripts/pack-example-lab.py` 刷新下载包，再执行上述仓库检查。发布前会复验运行结果、文章与下载包一致性。
 
 ## 验证范围
 

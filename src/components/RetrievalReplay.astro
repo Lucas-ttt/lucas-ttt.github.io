@@ -1,0 +1,123 @@
+---
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+type ReplayCase = {
+  id: string;
+  query: string;
+  version: string;
+  status: string;
+  expected_ids: string[];
+  answer: string;
+  trace: {
+    version_ids: string[];
+    hit_ids: string[];
+    context_ids: string[];
+    first_failed_stage: string | null;
+  };
+};
+const report: {
+  cases: ReplayCase[];
+  sources: Record<string, { version: string; source: string; text: string }>;
+} = JSON.parse(readFileSync(resolve("public/examples/agent-lab/replay_cases.json"), "utf8"));
+
+const labels: Record<string, { option: string; result: string }> = {
+  v2: { option: "正常 · v2", result: "v2 命中 customer_id" },
+  v1: { option: "切换 · v1", result: "v1 命中 user_id" },
+  v9: { option: "未知版本 · v9", result: "没有适用依据" },
+  wrong_version: { option: "故障 · 版本标错", result: "资料在版本过滤时被排除" },
+  context_dropped: { option: "故障 · 命中后丢失", result: "命中的证据没有进入上下文" },
+};
+const formatIds = (ids: string[]) => ids.length ? ids.join("、") : "空";
+---
+
+<div class="replay" data-retrieval-replay>
+  <div class="replay-intro">
+    <div>
+      <h3>回放一次检索</h3>
+      <p>切换产品版本或注入故障，查看证据在哪一步丢失。结果由配套 Python 脚本生成。</p>
+    </div>
+    <label class="scenario">
+      场景
+      <select data-scenario disabled>
+        {report.cases.map(item => <option value={item.id}>{labels[item.id].option}</option>)}
+      </select>
+    </label>
+  </div>
+
+  <div aria-live="polite" aria-atomic="true">
+    {report.cases.map((item, index) => (
+      <div class="run" data-run={item.id} hidden={index !== 0}>
+        <p class="query"><span>输入</span> <code>{item.query}</code> <span>产品</span> <code>{item.version}</code></p>
+        <p class:list={["result", { fault: item.status === "injected_failure" }]}>{labels[item.id].result}</p>
+        <dl class="steps">
+          <div><dt>预期证据</dt><dd>{formatIds(item.expected_ids)}</dd></div>
+          <div><dt>通过版本过滤</dt><dd>{formatIds(item.trace.version_ids)}</dd></div>
+          <div><dt>检索命中</dt><dd>{formatIds(item.trace.hit_ids)}</dd></div>
+          <div><dt>进入上下文</dt><dd>{formatIds(item.trace.context_ids)}</dd></div>
+        </dl>
+        {item.expected_ids.length > 0 && (
+          <details class="source">
+            <summary>{item.status === "injected_failure" ? "核对漏掉的原文" : "打开证据原文"}</summary>
+            {item.expected_ids.map(id => (
+              <div>
+                <p><code>{id}</code> · {report.sources[id].version} · {report.sources[id].source}</p>
+                <blockquote>{report.sources[id].text}</blockquote>
+              </div>
+            ))}
+          </details>
+        )}
+        <p class="command">本地复现 <code>python replay_cases.py --case {item.id}</code></p>
+      </div>
+    ))}
+  </div>
+  <div class="links">
+    <a href="/examples/agent-lab.zip" download>下载 Python 复现包</a>
+    <a href="/examples/agent-lab/replay_cases.json">查看运行数据</a>
+  </div>
+</div>
+
+<script>
+  function setupReplay() {
+    for (const replay of document.querySelectorAll<HTMLElement>("[data-retrieval-replay]")) {
+      const select = replay.querySelector<HTMLSelectElement>("[data-scenario]");
+      if (!select || !select.disabled) continue;
+      const runs = replay.querySelectorAll<HTMLElement>("[data-run]");
+      function activate() {
+        for (const run of runs) run.hidden = run.dataset.run !== select?.value;
+      }
+      select.addEventListener("change", activate);
+      select.disabled = false;
+      activate();
+    }
+  }
+  setupReplay();
+  document.addEventListener("astro:page-load", setupReplay);
+</script>
+
+<style>
+  .replay { border: 1px solid var(--border); border-radius: .6rem; padding: clamp(1rem, 4vw, 1.6rem); margin: 1.25rem 0; background: var(--muted); }
+  .replay-intro { display: flex; flex-wrap: wrap; align-items: start; gap: .85rem 1.3rem; justify-content: space-between; }
+  .replay-intro > div { flex: 1 1 14rem; }
+  h3 { margin: 0 0 .45rem; font-size: 1.15rem; }
+  .replay-intro p, .command, .source p { color: var(--muted-foreground); font-size: .82rem; }
+  .scenario { display: grid; gap: .25rem; font-size: .8rem; max-width: 100%; }
+  select { border: 1px solid var(--border); border-radius: .35rem; padding: .5rem; color: var(--foreground); background: var(--background); }
+  .run { border: 1px solid var(--border); background: var(--background); border-radius: .45rem; padding: 1rem; margin-top: 1rem; }
+  .query { display: flex; flex-wrap: wrap; gap: .35rem .5rem; font-size: .85rem; }
+  .query span { color: var(--muted-foreground); }
+  .result { color: var(--accent); font-weight: 650; margin: .5rem 0 .9rem; }
+  .result.fault { color: var(--foreground); }
+  .steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin: 0 0 .85rem; }
+  .steps div { border-top: 1px solid var(--border); padding-top: .5rem; }
+  dt { color: var(--muted-foreground); font-size: .75rem; }
+  dd { margin: .25rem 0 0; font: .82rem/1.6 ui-monospace, monospace; overflow-wrap: anywhere; }
+  .source { border-top: 1px solid var(--border); padding-top: .65rem; margin-bottom: .75rem; }
+  summary { cursor: pointer; color: var(--accent); font-size: .85rem; }
+  .source > div { margin-top: .5rem; }
+  blockquote { font-size: .86rem; margin: .35rem 0; padding-left: .75rem; border-left: 2px solid var(--accent); }
+  .command { overflow-wrap: anywhere; }
+  .command code { display: block; margin-top: .24rem; }
+  .links { display: flex; flex-wrap: wrap; gap: .6rem 1rem; margin-top: .9rem; font-size: .82rem; }
+  .links a { color: var(--accent); text-decoration: underline; text-underline-offset: .2em; }
+</style>

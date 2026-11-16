@@ -1,0 +1,241 @@
+{
+  "dataset": "9 条自编退款流水",
+  "metric": {
+    "timestamp": "succeeded_at",
+    "status": "succeeded",
+    "amount_unit": "分",
+    "timezone": "Asia/Shanghai (UTC+08:00)",
+    "window_rule": "[start, end)",
+    "window_days": 7
+  },
+  "input_records": [
+    {
+      "refund_id": "r01",
+      "channel": "自然流量",
+      "status": "succeeded",
+      "amount_cents": 12000,
+      "applied_at": "2026-09-01T09:00:00+08:00",
+      "succeeded_at": "2026-09-01T10:00:00+08:00"
+    },
+    {
+      "refund_id": "r02",
+      "channel": "广告",
+      "status": "succeeded",
+      "amount_cents": 8000,
+      "applied_at": "2026-09-04T09:00:00+08:00",
+      "succeeded_at": "2026-09-04T10:00:00+08:00"
+    },
+    {
+      "refund_id": "r03",
+      "channel": "合作渠道",
+      "status": "succeeded",
+      "amount_cents": 5000,
+      "applied_at": "2026-09-06T10:00:00+08:00",
+      "succeeded_at": "2026-09-06T11:00:00+08:00"
+    },
+    {
+      "refund_id": "r04",
+      "channel": "自然流量",
+      "status": "succeeded",
+      "amount_cents": 7000,
+      "applied_at": "2026-09-30T22:00:00+08:00",
+      "succeeded_at": "2026-10-01T00:00:00+08:00"
+    },
+    {
+      "refund_id": "r05",
+      "channel": "自然流量",
+      "status": "succeeded",
+      "amount_cents": 9000,
+      "applied_at": "2026-10-03T08:00:00+08:00",
+      "succeeded_at": "2026-10-03T09:00:00+08:00"
+    },
+    {
+      "refund_id": "r06",
+      "channel": "广告",
+      "status": "succeeded",
+      "amount_cents": 6000,
+      "applied_at": "2026-10-05T14:00:00+08:00",
+      "succeeded_at": "2026-10-05T15:00:00+08:00"
+    },
+    {
+      "refund_id": "r07",
+      "channel": "合作渠道",
+      "status": "succeeded",
+      "amount_cents": 8000,
+      "applied_at": "2026-10-06T10:00:00+08:00",
+      "succeeded_at": "2026-10-06T11:00:00+08:00"
+    },
+    {
+      "refund_id": "r08",
+      "channel": "自然流量",
+      "status": "succeeded",
+      "amount_cents": 4000,
+      "applied_at": "2026-10-07T19:00:00+08:00",
+      "succeeded_at": "2026-10-08T00:00:00+08:00"
+    },
+    {
+      "refund_id": "r09",
+      "channel": "广告",
+      "status": "failed",
+      "amount_cents": 15000,
+      "applied_at": "2026-10-02T16:00:00+08:00",
+      "succeeded_at": null
+    }
+  ],
+  "periods": {
+    "previous": {
+      "start_inclusive": "2026-09-01T00:00:00+08:00",
+      "end_exclusive": "2026-09-08T00:00:00+08:00",
+      "amount_cents": 25000,
+      "count": 3,
+      "matching_refund_ids": [
+        "r01",
+        "r02",
+        "r03"
+      ],
+      "channels": [
+        {
+          "channel": "合作渠道",
+          "count": 1,
+          "amount_cents": 5000
+        },
+        {
+          "channel": "广告",
+          "count": 1,
+          "amount_cents": 8000
+        },
+        {
+          "channel": "自然流量",
+          "count": 1,
+          "amount_cents": 12000
+        }
+      ]
+    },
+    "current": {
+      "start_inclusive": "2026-10-01T00:00:00+08:00",
+      "end_exclusive": "2026-10-08T00:00:00+08:00",
+      "amount_cents": 30000,
+      "count": 4,
+      "matching_refund_ids": [
+        "r04",
+        "r05",
+        "r06",
+        "r07"
+      ],
+      "channels": [
+        {
+          "channel": "合作渠道",
+          "count": 1,
+          "amount_cents": 8000
+        },
+        {
+          "channel": "广告",
+          "count": 1,
+          "amount_cents": 6000
+        },
+        {
+          "channel": "自然流量",
+          "count": 2,
+          "amount_cents": 16000
+        }
+      ]
+    }
+  },
+  "change_cents": 5000,
+  "channel_changes": [
+    {
+      "channel": "合作渠道",
+      "previous_cents": 5000,
+      "current_cents": 8000,
+      "change_cents": 3000
+    },
+    {
+      "channel": "广告",
+      "previous_cents": 8000,
+      "current_cents": 6000,
+      "change_cents": -2000
+    },
+    {
+      "channel": "自然流量",
+      "previous_cents": 12000,
+      "current_cents": 16000,
+      "change_cents": 4000
+    }
+  ],
+  "counterexample": {
+    "timestamp": "applied_at",
+    "periods": {
+      "previous": {
+        "start_inclusive": "2026-09-01T00:00:00+08:00",
+        "end_exclusive": "2026-09-08T00:00:00+08:00",
+        "amount_cents": 25000,
+        "count": 3,
+        "matching_refund_ids": [
+          "r01",
+          "r02",
+          "r03"
+        ],
+        "channels": [
+          {
+            "channel": "合作渠道",
+            "count": 1,
+            "amount_cents": 5000
+          },
+          {
+            "channel": "广告",
+            "count": 1,
+            "amount_cents": 8000
+          },
+          {
+            "channel": "自然流量",
+            "count": 1,
+            "amount_cents": 12000
+          }
+        ]
+      },
+      "current": {
+        "start_inclusive": "2026-10-01T00:00:00+08:00",
+        "end_exclusive": "2026-10-08T00:00:00+08:00",
+        "amount_cents": 27000,
+        "count": 4,
+        "matching_refund_ids": [
+          "r05",
+          "r06",
+          "r07",
+          "r08"
+        ],
+        "channels": [
+          {
+            "channel": "合作渠道",
+            "count": 1,
+            "amount_cents": 8000
+          },
+          {
+            "channel": "广告",
+            "count": 1,
+            "amount_cents": 6000
+          },
+          {
+            "channel": "自然流量",
+            "count": 2,
+            "amount_cents": 13000
+          }
+        ]
+      }
+    },
+    "change_cents": 2000,
+    "change_error_cents": -3000,
+    "omitted_current_ids": [
+      "r04"
+    ],
+    "extra_current_ids": [
+      "r08"
+    ]
+  },
+  "checks": {
+    "group_totals_match": true,
+    "change_matches": true,
+    "write_rejected": "SQLITE_READONLY"
+  },
+  "interpretation": "各渠道金额变动用于核对总额差值，业务原因需要结合其他数据验证。"
+}

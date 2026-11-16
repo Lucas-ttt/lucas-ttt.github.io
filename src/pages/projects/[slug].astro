@@ -4,6 +4,9 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import ProjectCase from "@/components/ProjectCase.astro";
+import RetrievalReplay from "@/components/RetrievalReplay.astro";
+import RetrievalIteration from "@/components/RetrievalIteration.astro";
+import RefundReconciliation from "@/components/RefundReconciliation.astro";
 import { projects, type Project } from "@/data/projects";
 
 export const getStaticPaths = (() =>
@@ -50,6 +53,7 @@ const sections = [
       <p class="case-summary">{project.summary}</p>
       <p class="status-detail">{project.statusDetail}</p>
       <div class="hero-evidence">
+        {project.slug === "support-knowledge-base" && <a href="#replay">回放检索实验 ↓</a>}
         {
           project.deliverables.map(item => (
             <a href={item.href}>
@@ -79,6 +83,19 @@ const sections = [
         <section id="results">
           <p class="section-number">DELIVERABLES</p>
           <h2>当前成果与材料</h2>
+          {project.slug === "support-knowledge-base" && (
+            <div>
+              <div id="replay"><RetrievalReplay /></div>
+              <RetrievalIteration />
+              <div class="reproduce" id="local-query">
+                <h3>启动本地问答接口</h3>
+                <p>返回版本证据、请求编号和分段耗时。开箱使用原文提取。带引用生成、错引、无依据和超时回落已用本机模型替身验证。</p>
+                <pre tabindex="0"><code>python answer_service.py</code></pre>
+                <p><a class="text-link" href="/examples/agent-lab/README.md#本地问答接口">查看查询命令与模型配置 ↗</a></p>
+              </div>
+            </div>
+          )}
+          {project.slug === "attribution-analysis" && <RefundReconciliation />}
           <div class="evidence-grid">
             {
               project.deliverables.map(item => (
@@ -93,29 +110,6 @@ const sections = [
               ))
             }
           </div>
-          {
-            project.results && (
-              <div class="observed-results">
-                <>
-                  <h3>实际运行对照</h3>
-                  <p>
-                    以下结果来自三份自编资料与离线词项检索，输出直接抽取原文。
-                  </p>
-                  <div class="result-rows">
-                    {project.results.map(result => (
-                      <div>
-                        <span class="result-input">{result.input}</span>
-                        <div>
-                          <strong>{result.output}</strong>
-                          <p>{result.detail}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              </div>
-            )
-          }
           {
             project.reproduce && (
               <div class="reproduce">
@@ -292,9 +286,9 @@ const sections = [
           <p>{project.takeaway}</p>
           <p class="reference-note">
             {
-              project.results
-                ? "已运行的代码与结果见本页成果入口；尚未接入的服务和待完成的工作见实现范围。"
-                : "本页展示架构研读与改造方案；设计材料见案例拆解，待完成的运行与验收见实现范围。"
+              project.slug === "support-knowledge-base"
+                ? "原型、评测和本地接口的运行材料见本页成果入口。"
+                : "退款对账可独立复现。完整架构和 SQL 纠错方案见案例拆解。"
             }
           </p>
           <ul class="body-list">
@@ -418,45 +412,13 @@ const sections = [
     font-size: 0.8rem !important;
     margin: 0;
   }
-  .observed-results,
   .reproduce {
     margin-top: 2rem;
   }
-  .observed-results > p,
   .reproduce > p {
     color: var(--muted-foreground);
     font-size: 0.82rem !important;
     margin-bottom: 1rem;
-  }
-  .result-rows {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .result-rows > div {
-    display: grid;
-    grid-template-columns: 8rem minmax(0, 1fr);
-    gap: 1rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .result-rows > div:last-child {
-    border-bottom: none;
-  }
-  .result-input {
-    color: var(--accent);
-    font:
-      0.78rem/1.8 ui-monospace,
-      monospace;
-  }
-  .result-rows strong {
-    font-size: 0.86rem;
-    font-weight: 600;
-  }
-  .result-rows p {
-    margin: 0.3rem 0 0;
-    color: var(--muted-foreground);
-    font-size: 0.78rem !important;
   }
   .reproduce pre {
     overflow-x: auto;
@@ -813,10 +775,6 @@ const sections = [
     }
     .evidence-grid {
       grid-template-columns: 1fr;
-    }
-    .result-rows > div {
-      grid-template-columns: 1fr;
-      gap: 0.4rem;
     }
     .case-hero {
       padding-block: 2rem;

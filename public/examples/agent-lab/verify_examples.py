@@ -93,16 +93,22 @@ class RetrievalRegression(unittest.TestCase):
 
 def run_scripts():
     records = []
-    scripts = [(item["script"], "current-series") for item in ARTICLE_MAP]
-    scripts += [(name, "shared-tool") for name in
+    scripts = [([item["script"]], "current-series") for item in ARTICLE_MAP]
+    scripts += [([name], "shared-tool") for name in
                 ("knowledge_tool.py", "eval_tools.py", "retrieval_demo.py", "citation_checks.py")]
-    for script, suite in scripts:
+    scripts += [
+        (["replay_cases.py", "--check"], "portfolio"),
+        (["retrieval_iteration.py", "--check"], "portfolio"),
+        (["refund_reconciliation.py", "--check"], "portfolio"),
+        (["test_answer_service.py"], "local-http"),
+    ]
+    for (script, *args), suite in scripts:
         completed = subprocess.run(
-            [sys.executable, str(FOLDER / script)], cwd=FOLDER,
+            [sys.executable, str(FOLDER / script), *args], cwd=FOLDER,
             env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8"},
             capture_output=True, text=True, encoding="utf-8", timeout=30,
         )
-        record = {"command": f"python {script}", "suite": suite,
+        record = {"command": " ".join(["python", script, *args]), "suite": suite,
                   "exitCode": completed.returncode, "stdout": completed.stdout.rstrip()}
         if completed.stderr:
             record["stderr"] = completed.stderr.rstrip()
@@ -145,7 +151,7 @@ def write_records(records):
         "verifiedDate": now.date().isoformat(), "verifiedAt": now.isoformat(timespec="seconds"),
         "python": platform.python_version(), "platform": platform.system(), "packages": {},
         "externalModelVerified": False,
-        "scope": "当前十篇标准库入口、共享检索工具和边界回归已本机复验。无真实模型质量或生产性能结论。",
+        "scope": "标准库文章、检索回放、别名评测、退款对账和本机 HTTP 已复验。模型生成分支使用受控 HTTP 替身。",
         "runs": records, "primarySeries": "AI Agent 开发实践", "primaryScriptCount": len(ARTICLE_MAP),
         "historicalVerification": history,
     }
