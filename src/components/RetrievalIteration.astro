@@ -27,11 +27,6 @@ const repaired = report.groups.flatMap(group => group.cases).find(item => item.i
     ))}
   </dl>
   <p>「导入后提示客户那列没了」仍未命中。另两条带 E10 或 id 的混合输入仍因「导入」一词误召。通过标准是证据 ID 集合与人工标注一致，样例来自三份自编手册。</p>
-  <p class="run"><code>python retrieval_iteration.py --check</code></p>
-  <div class="links">
-    <a href="/examples/agent-lab/retrieval_iteration_results.json" download>下载逐条评测</a>
-    <a href="/posts/rag-evaluation-records/#alias-retrieval">阅读改进记录</a>
-  </div>
 </div>
 <style>
   .iteration { border: 1px solid var(--border); border-radius: .6rem; padding: clamp(1rem, 4vw, 1.6rem); margin: 1.25rem 0; }
@@ -41,7 +36,4 @@ const repaired = report.groups.flatMap(group => group.cases).find(item => item.i
   dl > div { background: var(--muted); border: 1px solid var(--border); border-radius: .35rem; padding: .7rem; }
   dd { color: var(--accent); margin: .3rem 0; font: 650 1.2rem/1.4 ui-monospace, monospace; }
   dl p { color: var(--muted-foreground); font-size: .76rem; }
-  .run { margin: .6rem 0; overflow-wrap: anywhere; }
-  .links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; font-size: .83rem; }
-  a { color: var(--accent); text-decoration: underline; text-underline-offset: .2em; }
 </style>

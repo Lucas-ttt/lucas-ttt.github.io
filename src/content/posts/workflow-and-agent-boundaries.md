@@ -1,5 +1,5 @@
 ---
-title: "先固定流程，再开放决策：我对 Workflow 和 Agent 的取舍"
+title: "工作流与 Agent 的取舍"
 description: "把同一排障任务分别放进固定流程与有限调度器，观察状态、澄清、工具选择和停止条件。"
 pubDatetime: 2026-11-03T10:00:00+08:00
 archiveDatetime: 2026-03-20T12:00:00+08:00
